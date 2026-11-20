@@ -79,13 +79,16 @@ export function FloatingWhatsApp() {
   );
 }
 
-/** Adds data-reveal="in" as elements scroll into view (staggered via --reveal-delay). */
+/**
+ * Adds data-reveal="in" as elements scroll into view (staggered via --reveal-delay).
+ * One observer for the whole visit: re-creating it on navigation dropped cards that
+ * mounted mid-transition, leaving them invisible.
+ */
 export function RevealObserver() {
-  const pathname = usePathname();
   useEffect(() => {
     document.documentElement.classList.add("js");
     if (!("IntersectionObserver" in window)) {
-      document.querySelectorAll<HTMLElement>("[data-reveal]").forEach((el) => (el.dataset.reveal = "in"));
+      document.documentElement.classList.remove("js");
       return;
     }
     const io = new IntersectionObserver(
@@ -98,17 +101,23 @@ export function RevealObserver() {
         }),
       { threshold: 0.12, rootMargin: "0px 0px -20px 0px" },
     );
-    const scan = () => document.querySelectorAll<HTMLElement>('[data-reveal=""]:not([data-watch])').forEach((el) => {
-      el.dataset.watch = "1";
-      io.observe(el);
-    });
+    // observe() is a no-op for elements already being watched, so re-scanning is safe.
+    const scan = () => document.querySelectorAll<HTMLElement>('[data-reveal=""]').forEach((el) => io.observe(el));
     scan();
-    const mo = new MutationObserver(scan);
-    mo.observe(document.body, { childList: true, subtree: true });
+    let queued = false;
+    const mo = new MutationObserver(() => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(() => {
+        queued = false;
+        scan();
+      });
+    });
+    mo.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-reveal"] });
     return () => {
       io.disconnect();
       mo.disconnect();
     };
-  }, [pathname]);
+  }, []);
   return null;
 }
