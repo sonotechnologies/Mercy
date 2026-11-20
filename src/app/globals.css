@@ -1,0 +1,112 @@
+@import "tailwindcss";
+
+/* Mercy Footwears design tokens (see Design Brief §2) */
+@theme {
+  --color-cream: #fbf6ef;
+  --color-sand: #f1e6d6;
+  --color-tan: #c89b6d;
+  --color-tan-ink: #8c6239; /* tan darkened for AA text contrast (struck-through prices) */
+  --color-gold: #b8924a;
+  --color-ochre: #8a6a2e; /* eyebrow labels: gold darkened for AA contrast on cream */
+  --color-cocoa: #2b1f1a;
+  --color-muted: #6b574b;
+  --color-mercy: #b3202a;
+  --color-leaf: #4e6b4a;
+  --color-wa: #25d366;
+  --color-wa-dark: #128c4b;
+  --color-field: #fffdf9;
+  --color-hair: rgb(184 146 74 / 0.5);
+
+  --font-serif: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
+  --font-sans: var(--font-dm-sans), "DM Sans", system-ui, sans-serif;
+
+  --shadow-soft: 0 8px 24px rgb(43 31 26 / 0.08);
+  --shadow-lift: 0 8px 24px rgb(43 31 26 / 0.12);
+
+  --ease-out-soft: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  --animate-flip: mf-flip 0.45s ease;
+  --animate-bounce-bag: mf-bounce 0.55s ease;
+  --animate-pop: mf-pop 0.4s ease;
+}
+
+@keyframes mf-flip {
+  0% { transform: perspective(200px) rotateX(-80deg); opacity: 0; }
+  100% { transform: none; opacity: 1; }
+}
+@keyframes mf-bounce {
+  0%, 100% { transform: none; }
+  30% { transform: translateY(-6px) scale(1.08); }
+  60% { transform: translateY(1px); }
+}
+@keyframes mf-pop {
+  0% { transform: scale(0.3); }
+  70% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+@keyframes mf-confetti {
+  0% { transform: translate(0, 0) rotate(0); opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) rotate(var(--r)); opacity: 0; }
+}
+@keyframes mf-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@layer base {
+html {
+  background: var(--color-cream);
+  -webkit-tap-highlight-color: transparent;
+}
+body {
+  margin: 0;
+  background: var(--color-cream);
+  color: var(--color-cocoa);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+@media (min-width: 1024px) {
+  body { font-size: 16px; }
+}
+
+a { color: inherit; }
+
+:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+}
+
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* Skeleton shimmer behind images until they load */
+.skeleton {
+  background-color: var(--color-sand);
+  background-image: linear-gradient(90deg, rgb(241 230 214 / 0) 0%, rgb(251 246 239 / 0.7) 50%, rgb(241 230 214 / 0) 100%);
+  background-size: 200% 100%;
+  animation: mf-shimmer 1.4s ease-in-out infinite;
+}
+
+/* Scroll reveal: products fade up as they enter the viewport (JS adds data-reveal="in") */
+.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.3s ease var(--reveal-delay, 0ms), transform 0.3s ease var(--reveal-delay, 0ms);
+}
+.js [data-reveal="in"] {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-anim] { animation: none !important; }
+  [data-confetti] { display: none; }
+  .js [data-reveal] { opacity: 1; transform: none; transition: none; }
+  .skeleton { animation: none; }
+  *, *::before, *::after { transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
