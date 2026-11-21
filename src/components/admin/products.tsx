@@ -236,18 +236,18 @@ function ProductEditor({ initial, isNew, onSaved, onDeleted }: { initial: Produc
           </select>
         </label>
         <label className={labelCls}>
-          Price (₦)
+          Normal price (₦)
           <input type="number" inputMode="numeric" min={0} step={50} value={p.price || ""} onChange={(e) => set("price", Number(e.target.value))} className={input} />
         </label>
         <label className={labelCls}>
-          Sale price (₦)
+          Sale price (₦, optional)
           <input
             type="number"
             inputMode="numeric"
             min={0}
             step={50}
             value={p.salePrice ?? ""}
-            placeholder="Uses sale %"
+            placeholder="No sale price"
             onChange={(e) => set("salePrice", e.target.value ? Number(e.target.value) : undefined)}
             className={input}
           />
@@ -367,6 +367,72 @@ function ProductEditor({ initial, isNew, onSaved, onDeleted }: { initial: Produc
   );
 }
 
+/** Inline normal + sale price inputs in the product list. Saves on Enter or when leaving the field. */
+function PriceCells({ product }: { product: Product }) {
+  const { saveProduct } = useStore();
+  const [price, setPrice] = useState(String(product.price));
+  const [sale, setSale] = useState(product.salePrice ? String(product.salePrice) : "");
+  const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [msg, setMsg] = useState("");
+
+  const commit = async () => {
+    const n = Math.round(Number(price));
+    const sp = sale.trim() ? Math.round(Number(sale)) : undefined;
+    if (n === product.price && sp === product.salePrice) return;
+    if (!n || n < 100) {
+      setState("error");
+      setMsg("Normal price?");
+      return;
+    }
+    if (sp != null && (!sp || sp >= n)) {
+      setState("error");
+      setMsg("Sale must be lower");
+      return;
+    }
+    setState("saving");
+    try {
+      await saveProduct({ ...product, price: n, salePrice: sp });
+      setState("saved");
+      setTimeout(() => setState("idle"), 1500);
+    } catch (e) {
+      setState("error");
+      setMsg((e as Error).message);
+    }
+  };
+  const box = (v: string, set: (v: string) => void, label: string, red = false) => (
+    <input
+      type="number"
+      inputMode="numeric"
+      step={50}
+      min={0}
+      value={v}
+      aria-label={`${label} for ${product.name}`}
+      placeholder="—"
+      onClick={(e) => e.stopPropagation()}
+      onChange={(e) => {
+        set(e.target.value);
+        setState("idle");
+      }}
+      onBlur={() => void commit()}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+      }}
+      className={`tabular h-9 w-[88px] rounded-lg border bg-white px-2 text-right text-base outline-none focus:border-gold lg:text-sm ${red ? "font-semibold text-mercy" : "font-semibold"} ${state === "error" ? "border-mercy" : "border-cocoa/15"}`}
+    />
+  );
+  return (
+    <>
+      <td className="px-2 py-2.5 text-right">{box(price, setPrice, "Normal price")}</td>
+      <td className="px-2 py-2.5 text-right">
+        {box(sale, setSale, "Sale price", true)}
+        <span className={`block h-4 text-[11px] ${state === "error" ? "text-mercy" : "text-leaf"}`} aria-live="polite">
+          {state === "saving" ? "Saving…" : state === "saved" ? "Saved ✓" : state === "error" ? msg : sale && Number(sale) < Number(price) ? `−${naira(Number(price) - Number(sale))}` : ""}
+        </span>
+      </td>
+    </>
+  );
+}
+
 export function ProductsTab() {
   const { products, data } = useStore();
   const [sel, setSel] = useState<string | null>(products[0]?.id ?? null);
@@ -393,11 +459,12 @@ export function ProductsTab() {
       </div>
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,460px)]">
         <div className={`${card} overflow-x-auto`}>
-          <table className="w-full min-w-[440px] border-collapse text-sm">
+          <table className="w-full min-w-[560px] border-collapse text-sm">
             <thead>
               <tr className="text-left text-xs tracking-[.06em] text-muted">
                 <th className="px-4 py-3 font-semibold">PRODUCT</th>
-                <th className="px-4 py-3 text-right font-semibold">PRICE</th>
+                <th className="px-2 py-3 text-right font-semibold">NORMAL ₦</th>
+                <th className="px-2 py-3 text-right font-semibold">SALE ₦</th>
                 <th className="px-4 py-3 font-semibold">TYPE</th>
               </tr>
             </thead>
@@ -428,10 +495,7 @@ export function ProductsTab() {
                         </span>
                       </button>
                     </td>
-                    <td className="tabular px-4 py-2.5 text-right font-semibold">
-                      {naira(p.price)}
-                      {p.salePrice ? <span className="block text-xs font-normal text-mercy">Sale {naira(p.salePrice)}</span> : null}
-                    </td>
+                    <PriceCells product={p} />
                     <td className="px-4 py-2.5">
                       <span className="inline-flex items-center gap-1.5 text-[13px]">
                         <span className={`size-[7px] rounded-full ${!p.inStock ? "bg-tan" : mto ? "bg-gold" : "bg-leaf"}`} />
@@ -447,7 +511,7 @@ export function ProductsTab() {
         <div id="product-editor" className="scroll-mt-28 lg:sticky lg:top-24">
           {current ? (
             <ProductEditor
-              key={current.id + (draft ? "-new" : "")}
+              key={current.id + (draft ? "-new" : `-${current.price}-${current.salePrice ?? ""}`)}
               initial={current}
               isNew={!!draft}
               onSaved={(p) => {

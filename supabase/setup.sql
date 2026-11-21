@@ -147,8 +147,8 @@ create policy "admin delete product images" on storage.objects for delete to aut
 -- Customer order functions (callable with the public key).
 -- ---------------------------------------------------------------------------
 
--- Places an order. Prices, totals, the free gift and status are worked out here from
--- the catalogue and sale settings; only choices (items, sizes, colours, contact) come from the caller.
+-- Places an order. Prices (each product's own sale price while the sale is on), totals,
+-- the free gift and status are worked out here from the catalogue and sale settings; only choices (items, sizes, colours, contact) come from the caller.
 create or replace function public.place_order(p jsonb) returns jsonb
 language plpgsql security definer set search_path = public as $$
 declare
@@ -156,7 +156,6 @@ declare
   v_sale jsonb;
   v_live boolean := false;
   v_upcoming boolean := false;
-  v_pct numeric := 0;
   v_gift_min int;
   it jsonb;
   pr public.products%rowtype;
@@ -187,13 +186,13 @@ begin
     raise exception '% is not available right now.', initcap(v_ful);
   end if;
 
+  -- Sale: on/off switch with optional start and end dates (empty = no limit).
   select value into v_sale from public.settings where key = 'sale';
   if v_sale is not null and coalesce((v_sale->>'active')::boolean, false) then
-    if now() < (v_sale->>'startsAt')::timestamptz then
+    if nullif(v_sale->>'startsAt', '') is not null and now() < (v_sale->>'startsAt')::timestamptz then
       v_upcoming := true;
-    elsif now() <= (v_sale->>'endsAt')::timestamptz then
+    elsif nullif(v_sale->>'endsAt', '') is null or now() <= (v_sale->>'endsAt')::timestamptz then
       v_live := true;
-      v_pct := least(90, greatest(0, coalesce((v_sale->>'discountPercent')::numeric, 0)));
     end if;
     v_gift_min := greatest(1, coalesce((v_sale->>'freeGiftMinPairs')::int, 4));
   end if;
@@ -206,13 +205,10 @@ begin
     v_qty := greatest(1, least(20, coalesce((it->>'qty')::int, 1)));
     select c->>'name' into v_colour from jsonb_array_elements(pr.colours) c where c->>'name' = it->>'colour' limit 1;
     if v_colour is null then v_colour := pr.colours -> 0 ->> 'name'; end if;
+    -- Each product has its own sale price; without one it stays at the normal price.
     v_unit := pr.price;
-    if v_live then
-      if pr.sale_price is not null and pr.sale_price > 0 and pr.sale_price < pr.price then
-        v_unit := pr.sale_price;
-      else
-        v_unit := (round(pr.price * (1 - v_pct / 100) / 50) * 50)::int;
-      end if;
+    if v_live and pr.sale_price is not null and pr.sale_price > 0 and pr.sale_price < pr.price then
+      v_unit := pr.sale_price;
     end if;
     v_sub := v_sub + v_unit * v_qty;
     v_full := v_full + pr.price * v_qty;
@@ -272,56 +268,130 @@ grant execute on function public.track_order(text, text) to anon, authenticated;
 -- ---------------------------------------------------------------------------
 
 insert into public.products (id, slug, name, gender, style, price, sale_price, colours, sizes, sold_out_sizes, in_stock, is_new, is_bestseller, description, focus, order_type, production_time, sort, created_at) values
-  ('p01', 'kemi-h-slide', 'Kemi H-Slide', 'women', 'H-Slides', 9500, null, '[{"name":"Ivory","hex":"#ECE5D6"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{38}'::integer[], true, false, true, 'A clean, flat H-strap slide that goes with everything, from jeans to Sunday wears. Soft footbed, sturdy sole, and an easy slip-on fit.', '50% 55%', null, null, 0, '2026-11-01T00:00:00.000Z'),
-  ('p02', 'tola-h-slide', 'Tola H-Slide', 'women', 'H-Slides', 9000, null, '[{"name":"Blush","hex":"#E9B9C0"},{"name":"Orange","hex":"#D9772E"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{41}'::integer[], true, false, true, 'A clean, flat H-strap slide that goes with everything, from jeans to Sunday wears. Soft footbed, sturdy sole, and an easy slip-on fit.', '50% 60%', null, null, 1, '2026-11-02T00:00:00.000Z'),
-  ('p03', 'ruby-h-slide', 'Ruby H-Slide', 'women', 'H-Slides', 8500, null, '[{"name":"Red","hex":"#C8232F","image":"/products/ruby-red.jpg"},{"name":"Plum","hex":"#8E2A4C","image":"/products/ruby-plum.jpg"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{37,42}'::integer[], true, true, true, 'A clean, flat H-strap slide that goes with everything, from jeans to Sunday wears. Soft footbed, sturdy sole, and an easy slip-on fit.', '50% 50%', null, null, 2, '2026-11-03T00:00:00.000Z'),
-  ('p04', 'ada-bow-slide', 'Ada Bow Slide', 'women', 'Bow & Knot', 8000, null, '[{"name":"Caramel","hex":"#C27A35"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{39}'::integer[], true, false, true, 'A soft knotted bow on a comfortable flat sole. Dressy enough for owambe, easy enough for a market run.', null, null, null, 3, '2026-11-04T00:00:00.000Z'),
-  ('p05', 'sade-bow-mule', 'Sade Bow Mule', 'women', 'Bow & Knot', 11000, null, '[{"name":"Mustard","hex":"#E2B523"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{40}'::integer[], true, false, true, 'A soft knotted bow on a comfortable flat sole. Dressy enough for owambe, easy enough for a market run.', '50% 72%', null, null, 4, '2026-11-05T00:00:00.000Z'),
-  ('p06', 'halima-buckle-strap', 'Halima Buckle Strap', 'women', 'Buckle', 9500, null, '[{"name":"Mocha & White","hex":"#5B3626"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{36}'::integer[], true, false, true, 'A structured strap finished with a polished buckle. Smart, polished and comfortable all day.', null, null, null, 5, '2026-11-06T00:00:00.000Z'),
-  ('p07', 'bisi-toe-ring', 'Bisi Toe-Ring', 'women', 'Toe-Ring', 6500, null, '[{"name":"Cognac","hex":"#9C4F2E"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{38}'::integer[], true, false, true, 'A toe-ring slide that keeps your foot secure without straps everywhere. Light, neat and made for long days.', null, null, null, 6, '2026-11-07T00:00:00.000Z'),
-  ('p08', 'nneka-bow-slide', 'Nneka Bow Slide', 'women', 'Bow & Knot', 7500, null, '[{"name":"Black","hex":"#1F1B19"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{41}'::integer[], true, false, true, 'A soft knotted bow on a comfortable flat sole. Dressy enough for owambe, easy enough for a market run.', null, null, null, 7, '2026-11-08T00:00:00.000Z'),
-  ('p09', 'amaka-croc-h-slide', 'Amaka Croc H-Slide', 'women', 'H-Slides', 12500, null, '[{"name":"Cognac","hex":"#9A5A33"},{"name":"Nude","hex":"#D9B48E"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{37,42}'::integer[], true, false, false, 'A clean, flat H-strap slide that goes with everything, from jeans to Sunday wears. Soft footbed, sturdy sole, and an easy slip-on fit.', '50% 78%', null, null, 8, '2026-11-09T00:00:00.000Z'),
-  ('p10', 'zara-two-tone-h-slide', 'Zara Two-Tone H-Slide', 'women', 'H-Slides', 10000, null, '[{"name":"Navy & Tan","hex":"#2B3A7A"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{39}'::integer[], true, true, false, 'A clean, flat H-strap slide that goes with everything, from jeans to Sunday wears. Soft footbed, sturdy sole, and an easy slip-on fit.', '50% 50%', null, null, 9, '2026-11-10T00:00:00.000Z'),
-  ('p11', 'ife-knotted-toe-ring', 'Ife Knotted Toe-Ring', 'women', 'Toe-Ring', 7000, null, '[{"name":"Brown","hex":"#6B4127"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{40}'::integer[], true, false, false, 'A toe-ring slide that keeps your foot secure without straps everywhere. Light, neat and made for long days.', '50% 60%', null, null, 10, '2026-11-11T00:00:00.000Z'),
-  ('p12', 'funmi-bow-toe-ring', 'Funmi Bow Toe-Ring', 'women', 'Toe-Ring', 7500, null, '[{"name":"Magenta","hex":"#B0255E"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{36}'::integer[], true, true, false, 'A toe-ring slide that keeps your foot secure without straps everywhere. Light, neat and made for long days.', null, null, null, 11, '2026-11-12T00:00:00.000Z'),
-  ('p13', 'chioma-two-tone-toe-ring', 'Chioma Two-Tone Toe-Ring', 'women', 'Toe-Ring', 8000, null, '[{"name":"Wine & Red","hex":"#5E2B2B"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{38}'::integer[], false, false, false, 'A toe-ring slide that keeps your foot secure without straps everywhere. Light, neat and made for long days.', null, null, null, 12, '2026-11-13T00:00:00.000Z'),
-  ('p14', 'yemi-strappy-slide', 'Yemi Strappy Slide', 'women', 'Strappy', 7000, null, '[{"name":"Pearl","hex":"#E7E1D3"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{41}'::integer[], true, false, false, 'Fine straps that look delicate and hold firm. Pairs beautifully with dresses and wide-leg trousers.', null, null, null, 13, '2026-11-14T00:00:00.000Z'),
-  ('p15', 'lola-lace-up-sandal', 'Lola Lace-Up Sandal', 'women', 'Strappy', 10500, null, '[{"name":"Tan","hex":"#C07A50"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{37,42}'::integer[], true, true, false, 'Fine straps that look delicate and hold firm. Pairs beautifully with dresses and wide-leg trousers.', null, null, null, 14, '2026-11-15T00:00:00.000Z'),
-  ('p16', 'dami-cross-strap', 'Dami Cross-Strap', 'women', 'Cross-Strap', 8500, null, '[{"name":"Sunset","hex":"#D86A2C"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{39}'::integer[], true, false, false, 'Crossed straps for a secure fit, with a pop of colour that lifts a simple outfit.', null, null, null, 15, '2026-11-16T00:00:00.000Z'),
-  ('p17', 'tobi-palm-slide', 'Tobi Palm Slide', 'men-unisex', 'Palm Slides', 14000, null, '[{"name":"Espresso","hex":"#3A2620"},{"name":"Black","hex":"#1F1B19"}]'::jsonb, '{40,41,42,43,44,45}'::integer[], '{40,44}'::integer[], true, false, true, 'A classic palm slide with a wide strap and cushioned sole. Clean, simple and built for everyday.', '50% 70%', null, null, 16, '2026-11-17T00:00:00.000Z'),
-  ('p18', 'emeka-toe-loop', 'Emeka Toe-Loop', 'men-unisex', 'Toe-Ring', 13500, null, '[{"name":"Black","hex":"#1F1B19"}]'::jsonb, '{40,41,42,43,44,45}'::integer[], '{43}'::integer[], true, false, false, 'A toe-ring slide that keeps your foot secure without straps everywhere. Light, neat and made for long days.', '50% 60%', null, null, 17, '2026-11-18T00:00:00.000Z'),
-  ('p19', 'seun-buckle-slide', 'Seun Buckle Slide', 'men-unisex', 'Buckle', 16000, null, '[{"name":"Sand & Tan","hex":"#C9B79A"}]'::jsonb, '{40,41,42,43,44,45}'::integer[], '{}'::integer[], true, true, false, 'A structured strap finished with a polished buckle. Smart, polished and comfortable all day.', '50% 62%', null, null, 18, '2026-11-19T00:00:00.000Z'),
-  ('p20', 'kunle-braided-slide', 'Kunle Braided Slide', 'men-unisex', 'Strappy', 18000, null, '[{"name":"Black","hex":"#1F1B19"}]'::jsonb, '{40,41,42,43,44,45}'::integer[], '{41}'::integer[], true, false, false, 'Fine straps that look delicate and hold firm. Pairs beautifully with dresses and wide-leg trousers.', null, null, null, 19, '2026-11-20T00:00:00.000Z')
+  ('buckle-h-slide', 'buckle-h-slide', 'Buckle H-Slide', 'women', 'H-Slides', 8000, 6500, '[{"name":"Mustard","hex":"#E2B523","image":"/products/catalog/buckle-h-slide-1.jpg"},{"name":"Olive","hex":"#6E6B45","image":"/products/catalog/buckle-h-slide-2.jpg"},{"name":"Tan","hex":"#B9804F","image":"/products/catalog/buckle-h-slide-3.jpg"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{}'::integer[], true, false, true, 'A clean, flat H-strap slide that goes with everything, from jeans to Sunday wears. Soft footbed, sturdy sole, easy slip-on fit.', '50% 50%', 'made-to-order', null, 0, '2026-11-21T00:00:00.000Z'),
+  ('bow-slide', 'bow-slide', 'Bow Slide', 'women', 'Bow & Knot', 8000, 6500, '[{"name":"Tan","hex":"#B9804F","image":"/products/catalog/bow-slide-1.jpg"},{"name":"Taupe","hex":"#9C8B7A","image":"/products/catalog/bow-slide-2.jpg"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{}'::integer[], true, false, true, 'A soft bow or knot on a comfortable flat sole. Dressy enough for owambe, easy enough for a market run.', '50% 50%', 'made-to-order', null, 1, '2026-11-20T23:59:00.000Z'),
+  ('clasp-slide', 'clasp-slide', 'Clasp Slide', 'women', 'Buckle', 8000, 6500, '[{"name":"Black","hex":"#1F1B19","image":"/products/catalog/clasp-slide-1.jpg"},{"name":"Cream/Tan","hex":"#EDE3CF","image":"/products/catalog/clasp-slide-3.jpg"},{"name":"Tan","hex":"#B9804F","image":"/products/catalog/clasp-slide-5.jpg"},{"name":"White","hex":"#F4F1EA","image":"/products/catalog/clasp-slide-5.jpg"},{"name":"Blue Suede","hex":"#8FB4D9","image":"/products/catalog/clasp-slide-4.jpg"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{}'::integer[], true, false, true, 'A structured strap finished with a polished buckle. Smart, sturdy and comfortable all day.', '50% 50%', 'made-to-order', null, 2, '2026-11-20T23:58:00.000Z'),
+  ('knotted-strappy-slide', 'knotted-strappy-slide', 'Knotted Strappy Slide', 'women', 'Strappy', 8000, 6500, '[{"name":"Beige","hex":"#D8C3A5","image":"/products/catalog/knotted-strappy-slide-1.jpg"},{"name":"Sage","hex":"#B5C3A3","image":"/products/catalog/knotted-strappy-slide-2.jpg"},{"name":"Ivory","hex":"#ECE5D6","image":"/products/catalog/knotted-strappy-slide-3.jpg"},{"name":"Black","hex":"#1F1B19","image":"/products/catalog/knotted-strappy-slide-3.jpg"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{}'::integer[], true, false, true, 'Fine straps that look delicate and hold firm. Pairs beautifully with dresses and wide-leg trousers.', '50% 50%', 'made-to-order', null, 3, '2026-11-20T23:57:00.000Z'),
+  ('crystal-knot-slide', 'crystal-knot-slide', 'Crystal Knot Slide', 'women', 'Bow & Knot', 9000, 8000, '[{"name":"Black","hex":"#1F1B19"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{}'::integer[], true, false, true, 'A soft bow or knot on a comfortable flat sole. Dressy enough for owambe, easy enough for a market run.', '50% 50%', 'made-to-order', null, 4, '2026-11-20T23:56:00.000Z'),
+  ('slingback-thong-sandal', 'slingback-thong-sandal', 'Slingback Thong Sandal', 'women', 'Toe-Ring', 12000, 10000, '[{"name":"Tan","hex":"#B9804F","image":"/products/catalog/slingback-thong-sandal-1.jpg"},{"name":"Black","hex":"#1F1B19","image":"/products/catalog/slingback-thong-sandal-2.jpg"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{}'::integer[], true, false, true, 'A toe-ring or thong style that keeps your foot secure without straps everywhere. Light, neat and made for long days.', '50% 50%', 'made-to-order', null, 5, '2026-11-20T23:55:00.000Z'),
+  ('pleated-knot-slide', 'pleated-knot-slide', 'Pleated Knot Slide', 'women', 'Bow & Knot', 8000, 6500, '[{"name":"Cream","hex":"#EDE3CF"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{}'::integer[], true, false, true, 'A soft bow or knot on a comfortable flat sole. Dressy enough for owambe, easy enough for a market run.', '50% 50%', 'made-to-order', null, 6, '2026-11-20T23:54:00.000Z'),
+  ('mustard-bow-slide', 'mustard-bow-slide', 'Bow & Knot Slide', 'women', 'Bow & Knot', 9000, 7500, '[{"name":"Mustard","hex":"#E2B523"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{}'::integer[], true, false, true, 'A soft bow or knot on a comfortable flat sole. Dressy enough for owambe, easy enough for a market run.', '50% 40%', 'made-to-order', null, 7, '2026-11-20T23:53:00.000Z'),
+  ('classic-h-slide', 'classic-h-slide', 'Classic H-Slide', 'women', 'H-Slides', 8000, 6500, '[{"name":"Burgundy","hex":"#6E1F2B"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{}'::integer[], true, false, true, 'A clean, flat H-strap slide that goes with everything, from jeans to Sunday wears. Soft footbed, sturdy sole, easy slip-on fit.', '50% 50%', 'made-to-order', null, 8, '2026-11-20T23:52:00.000Z'),
+  ('knotted-thong-platform', 'knotted-thong-platform', 'Knotted Thong Platform', 'women', 'Platform', 20000, 18000, '[{"name":"White","hex":"#F4F1EA"},{"name":"Lilac","hex":"#C3A6D3"},{"name":"Pink","hex":"#E3A3B5"},{"name":"Plum","hex":"#7A2E55"},{"name":"Black","hex":"#1F1B19"},{"name":"Orange","hex":"#E07A2E"},{"name":"Leopard","hex":"#B98A4E"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{}'::integer[], true, true, true, 'A raised sole that adds a little height without the wobble. Comfortable for long days out.', '50% 50%', 'made-to-order', null, 9, '2026-11-20T23:51:00.000Z'),
+  ('penny-loafer', 'penny-loafer', 'Penny Loafer', 'men-unisex', 'Loafers', 40000, 37500, '[{"name":"Black/Cream","hex":"#1F1B19","image":"/products/catalog/penny-loafer-1.jpg"},{"name":"Dark Brown","hex":"#3E2619","image":"/products/catalog/penny-loafer-2.jpg"},{"name":"Black","hex":"#1F1B19","image":"/products/catalog/penny-loafer-3.jpg"}]'::jsonb, '{40,41,42,43,44,45,46}'::integer[], '{}'::integer[], true, true, true, 'A classic penny loafer with a clean finish. Smart for work, sharp for occasions.', '50% 50%', 'made-to-order', null, 10, '2026-11-20T23:50:00.000Z'),
+  ('mens-cross-slide', 'mens-cross-slide', 'Cross Slide', 'men-unisex', 'Cross-Strap', 12000, 10500, '[{"name":"Tan/White/Burgundy","hex":"#B9804F","image":"/products/catalog/mens-cross-slide-1.jpg"},{"name":"Tan/Brown/White","hex":"#B9804F","image":"/products/catalog/mens-cross-slide-2.jpg"}]'::jsonb, '{40,41,42,43,44,45,46}'::integer[], '{}'::integer[], true, false, true, 'Crossed straps for a secure fit and a clean look, on a cushioned sole.', '50% 50%', 'made-to-order', null, 11, '2026-11-20T23:49:00.000Z'),
+  ('double-strap-cork-slide', 'double-strap-cork-slide', 'Double-Strap Cork Slide', 'men-unisex', 'Cork', 25000, 23000, '[{"name":"Black","hex":"#1F1B19","image":"/products/catalog/double-strap-cork-slide-1.jpg"},{"name":"Brown","hex":"#6B4127","image":"/products/catalog/double-strap-cork-slide-2.jpg"}]'::jsonb, '{40,41,42,43,44,45,46}'::integer[], '{}'::integer[], true, false, true, 'A contoured cork footbed that moulds to your foot, with sturdy straps for everyday wear.', '50% 50%', 'made-to-order', null, 12, '2026-11-20T23:48:00.000Z'),
+  ('mens-cut-out-slide', 'mens-cut-out-slide', 'Cut-Out Slide', 'men-unisex', 'Slides', 15000, 13500, '[{"name":"Black","hex":"#1F1B19","image":"/products/catalog/mens-cut-out-slide-1.jpg"},{"name":"Brown","hex":"#6B4127","image":"/products/catalog/mens-cut-out-slide-2.jpg"}]'::jsonb, '{40,41,42,43,44,45,46}'::integer[], '{}'::integer[], true, true, true, 'An easy slip-on slide with a soft footbed. Simple, smart and made for every day.', '50% 50%', 'made-to-order', null, 13, '2026-11-20T23:47:00.000Z'),
+  ('buckle-mule', 'buckle-mule', 'Buckle Mule', 'men-unisex', 'Mules', 30000, 27000, '[{"name":"Black","hex":"#1F1B19"}]'::jsonb, '{40,41,42,43,44,45,46}'::integer[], '{}'::integer[], true, false, true, 'A closed-toe mule you can slip on and go. Polished enough for the office, easy enough for the weekend.', '50% 50%', 'made-to-order', null, 14, '2026-11-20T23:46:00.000Z'),
+  ('mini-platform-thong', 'mini-platform-thong', 'Mini Platform Knot Thong', 'women', 'Platform', 12000, 10500, '[{"name":"Brown","hex":"#6B4127"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{}'::integer[], true, false, false, 'A raised sole that adds a little height without the wobble. Comfortable for long days out.', '50% 40%', 'made-to-order', null, 15, '2026-11-20T23:45:00.000Z'),
+  ('pointed-strappy-thong', 'pointed-strappy-thong', 'Pointed Strappy Thong', 'women', 'Strappy', 10000, 8500, '[{"name":"Rose","hex":"#D89AA5"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{}'::integer[], true, false, false, 'Fine straps that look delicate and hold firm. Pairs beautifully with dresses and wide-leg trousers.', '50% 45%', 'made-to-order', null, 16, '2026-11-20T23:44:00.000Z'),
+  ('quilted-slide', 'quilted-slide', 'Quilted Slide', 'women', 'Slides', 8000, 6500, '[{"name":"Red","hex":"#C8232F"},{"name":"Orange","hex":"#E07A2E"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{}'::integer[], true, false, false, 'An easy slip-on slide with a soft footbed. Simple, smart and made for every day.', '50% 40%', 'made-to-order', null, 17, '2026-11-20T23:43:00.000Z'),
+  ('medallion-slide', 'medallion-slide', 'Medallion Slide', 'women', 'Buckle', 8000, 6500, '[{"name":"Pink","hex":"#E3A3B5"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{}'::integer[], true, false, false, 'A structured strap finished with a polished buckle. Smart, sturdy and comfortable all day.', '50% 45%', 'made-to-order', null, 18, '2026-11-20T23:42:00.000Z'),
+  ('denim-buckle-slide', 'denim-buckle-slide', 'Denim Buckle Slide', 'women', 'Buckle', 8000, 6500, '[{"name":"Navy","hex":"#24304F"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{}'::integer[], true, false, false, 'A structured strap finished with a polished buckle. Smart, sturdy and comfortable all day.', '50% 50%', 'made-to-order', null, 19, '2026-11-20T23:41:00.000Z'),
+  ('suede-cross-platform', 'suede-cross-platform', 'Suede Cross Platform', 'women', 'Cross-Strap', 25000, 23000, '[{"name":"Black","hex":"#1F1B19"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{}'::integer[], true, false, false, 'Crossed straps for a secure fit and a clean look, on a cushioned sole.', '50% 50%', 'made-to-order', null, 20, '2026-11-20T23:40:00.000Z'),
+  ('woven-cross-slide', 'woven-cross-slide', 'Woven Cross Slide', 'women', 'Cross-Strap', 8000, 6500, '[{"name":"Brown","hex":"#6B4127","image":"/products/catalog/woven-cross-slide-1.jpg"},{"name":"Burgundy","hex":"#6E1F2B","image":"/products/catalog/woven-cross-slide-3.jpg"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{}'::integer[], true, false, false, 'Crossed straps for a secure fit and a clean look, on a cushioned sole.', '50% 50%', 'made-to-order', null, 21, '2026-11-20T23:39:00.000Z'),
+  ('buckle-platform-slide', 'buckle-platform-slide', 'Buckle Platform Slide', 'men-unisex', 'Buckle', 20000, 18000, '[{"name":"Brown","hex":"#6B4127"}]'::jsonb, '{40,41,42,43,44,45,46}'::integer[], '{}'::integer[], true, false, false, 'A structured strap finished with a polished buckle. Smart, sturdy and comfortable all day.', '50% 50%', 'made-to-order', null, 22, '2026-11-20T23:38:00.000Z'),
+  ('two-tone-h-slide', 'two-tone-h-slide', 'Two-Tone H-Slide', 'men-unisex', 'H-Slides', 15000, 13500, '[{"name":"Black/Tan","hex":"#1F1B19"}]'::jsonb, '{40,41,42,43,44,45,46}'::integer[], '{}'::integer[], true, false, false, 'A clean, flat H-strap slide that goes with everything, from jeans to Sunday wears. Soft footbed, sturdy sole, easy slip-on fit.', '50% 50%', 'made-to-order', null, 23, '2026-11-20T23:37:00.000Z'),
+  ('cut-out-bow-slide', 'cut-out-bow-slide', 'Cut-Out Bow Slide', 'women', 'Slides', 8000, 6500, '[{"name":"Tan","hex":"#B9804F"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{}'::integer[], true, false, false, 'An easy slip-on slide with a soft footbed. Simple, smart and made for every day.', '50% 50%', 'made-to-order', null, 24, '2026-11-20T23:34:00.000Z'),
+  ('crest-cork-slide', 'crest-cork-slide', 'Suede Cork Slide with Crest', 'men-unisex', 'Cork', 25000, 23000, '[{"name":"Black","hex":"#1F1B19"}]'::jsonb, '{40,41,42,43,44,45,46}'::integer[], '{}'::integer[], true, false, false, 'A contoured cork footbed that moulds to your foot, with sturdy straps for everyday wear.', '50% 50%', 'made-to-order', null, 25, '2026-11-20T23:31:00.000Z'),
+  ('textured-h-slide', 'textured-h-slide', 'Textured H-Slide', 'men-unisex', 'H-Slides', 12000, 10500, '[{"name":"Brown","hex":"#6B4127"}]'::jsonb, '{40,41,42,43,44,45,46}'::integer[], '{}'::integer[], true, false, false, 'A clean, flat H-strap slide that goes with everything, from jeans to Sunday wears. Soft footbed, sturdy sole, easy slip-on fit.', '50% 50%', 'made-to-order', null, 26, '2026-11-20T23:29:00.000Z'),
+  ('crystal-h-slide', 'crystal-h-slide', 'Crystal H-Slide', 'women', 'H-Slides', 8000, 6500, '[{"name":"Black","hex":"#1F1B19"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{}'::integer[], true, true, false, 'A clean, flat H-strap slide that goes with everything, from jeans to Sunday wears. Soft footbed, sturdy sole, easy slip-on fit.', '50% 50%', 'made-to-order', null, 27, '2026-11-20T23:28:00.000Z'),
+  ('double-strap-slide', 'double-strap-slide', 'Double-Strap Slide', 'women', 'Strappy', 8000, 6500, '[{"name":"Black","hex":"#1F1B19"},{"name":"Brown","hex":"#6B4127"},{"name":"Nude","hex":"#D9B48E"},{"name":"White","hex":"#F4F1EA"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{}'::integer[], true, false, false, 'Fine straps that look delicate and hold firm. Pairs beautifully with dresses and wide-leg trousers.', '50% 50%', 'made-to-order', null, 28, '2026-11-20T23:26:00.000Z'),
+  ('knot-thong', 'knot-thong', 'Knot Thong', 'women', 'Toe-Ring', 8000, 6500, '[{"name":"Beige","hex":"#D8C3A5"},{"name":"Rust","hex":"#A4502A"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{}'::integer[], true, false, false, 'A toe-ring or thong style that keeps your foot secure without straps everywhere. Light, neat and made for long days.', '50% 50%', 'made-to-order', null, 29, '2026-11-20T23:24:00.000Z'),
+  ('knot-t-strap-sandal', 'knot-t-strap-sandal', 'Knot T-Strap Sandal', 'women', 'Toe-Ring', 10000, 8500, '[{"name":"Black","hex":"#1F1B19","image":"/products/catalog/knot-t-strap-sandal-1.jpg"},{"name":"Brown","hex":"#6B4127","image":"/products/catalog/knot-t-strap-sandal-2.jpg"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{}'::integer[], true, false, false, 'A toe-ring or thong style that keeps your foot secure without straps everywhere. Light, neat and made for long days.', '50% 50%', 'made-to-order', null, 30, '2026-11-20T23:23:00.000Z'),
+  ('wide-strap-slide', 'wide-strap-slide', 'Wide-Strap Slide', 'women', 'Slides', 8000, 6500, '[{"name":"Sky Blue","hex":"#9EC3E6"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{}'::integer[], true, true, false, 'An easy slip-on slide with a soft footbed. Simple, smart and made for every day.', '50% 50%', 'made-to-order', null, 31, '2026-11-20T23:22:00.000Z'),
+  ('cross-comfort-slide', 'cross-comfort-slide', 'Cross-Strap Comfort Slide', 'men-unisex', 'Cross-Strap', 25000, 23000, '[{"name":"Black/Cream","hex":"#1F1B19"}]'::jsonb, '{40,41,42,43,44,45,46}'::integer[], '{}'::integer[], true, false, false, 'Crossed straps for a secure fit and a clean look, on a cushioned sole.', '50% 50%', 'made-to-order', null, 32, '2026-11-20T23:20:00.000Z'),
+  ('tab-slide', 'tab-slide', 'Tab Slide', 'women', 'Slides', 8000, 6500, '[{"name":"Khaki","hex":"#A79B78"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{}'::integer[], true, false, false, 'An easy slip-on slide with a soft footbed. Simple, smart and made for every day.', '50% 50%', 'made-to-order', null, 33, '2026-11-20T23:19:00.000Z'),
+  ('double-buckle-platform', 'double-buckle-platform', 'Double-Buckle Platform', 'men-unisex', 'Buckle', 25000, 23000, '[{"name":"Grey","hex":"#8D8B88"}]'::jsonb, '{40,41,42,43,44,45,46}'::integer[], '{}'::integer[], true, true, false, 'A structured strap finished with a polished buckle. Smart, sturdy and comfortable all day.', '50% 50%', 'made-to-order', null, 34, '2026-11-20T23:17:00.000Z'),
+  ('suede-tassel-slide', 'suede-tassel-slide', 'Suede Tassel Slide', 'women', 'Slides', 10000, 9000, '[{"name":"Taupe","hex":"#9C8B7A"},{"name":"Royal Blue","hex":"#2A4DA8"},{"name":"Brown","hex":"#6B4127"},{"name":"Mint","hex":"#A9D8C0"},{"name":"Sand","hex":"#D8C29E"},{"name":"Black","hex":"#1F1B19"},{"name":"Olive","hex":"#6E6B45"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{}'::integer[], true, true, false, 'An easy slip-on slide with a soft footbed. Simple, smart and made for every day.', '50% 50%', 'made-to-order', null, 35, '2026-11-20T23:16:00.000Z'),
+  ('toe-loop-buckle-slide', 'toe-loop-buckle-slide', 'Toe-Loop Buckle Slide', 'men-unisex', 'Toe-Ring', 12000, 10500, '[{"name":"Oxblood","hex":"#5A1A1A"}]'::jsonb, '{40,41,42,43,44,45,46}'::integer[], '{}'::integer[], true, false, false, 'A toe-ring or thong style that keeps your foot secure without straps everywhere. Light, neat and made for long days.', '50% 50%', 'made-to-order', null, 36, '2026-11-20T23:14:00.000Z'),
+  ('suede-buckle-slide', 'suede-buckle-slide', 'Suede Buckle Slide', 'men-unisex', 'Buckle', 12000, 10500, '[{"name":"Tan","hex":"#B9804F"}]'::jsonb, '{40,41,42,43,44,45,46}'::integer[], '{}'::integer[], true, false, false, 'A structured strap finished with a polished buckle. Smart, sturdy and comfortable all day.', '50% 50%', 'made-to-order', null, 37, '2026-11-20T23:13:00.000Z'),
+  ('double-buckle-cork-slide', 'double-buckle-cork-slide', 'Double-Buckle Cork Slide', 'men-unisex', 'Cork', 25000, 23000, '[{"name":"Tan","hex":"#B9804F"}]'::jsonb, '{40,41,42,43,44,45,46}'::integer[], '{}'::integer[], true, false, false, 'A contoured cork footbed that moulds to your foot, with sturdy straps for everyday wear.', '50% 50%', 'made-to-order', null, 38, '2026-11-20T23:12:00.000Z'),
+  ('double-strap-suede-slide', 'double-strap-suede-slide', 'Double-Strap Suede Slide', 'men-unisex', 'Slides', 18000, 15000, '[{"name":"Tan","hex":"#B9804F"}]'::jsonb, '{40,41,42,43,44,45,46}'::integer[], '{}'::integer[], true, false, false, 'An easy slip-on slide with a soft footbed. Simple, smart and made for every day.', '50% 50%', 'made-to-order', null, 39, '2026-11-20T23:11:00.000Z'),
+  ('double-buckle-suede-slide', 'double-buckle-suede-slide', 'Double-Buckle Suede Slide', 'men-unisex', 'Buckle', 17000, 15000, '[{"name":"Tan","hex":"#B9804F"}]'::jsonb, '{40,41,42,43,44,45,46}'::integer[], '{}'::integer[], true, false, false, 'A structured strap finished with a polished buckle. Smart, sturdy and comfortable all day.', '50% 50%', 'made-to-order', null, 40, '2026-11-20T23:10:00.000Z'),
+  ('woven-thong', 'woven-thong', 'Woven Thong', 'men-unisex', 'Toe-Ring', 12000, 10500, '[{"name":"Brown","hex":"#6B4127"},{"name":"Navy","hex":"#24304F"},{"name":"Burgundy","hex":"#6E1F2B"}]'::jsonb, '{40,41,42,43,44,45,46}'::integer[], '{}'::integer[], true, false, false, 'A toe-ring or thong style that keeps your foot secure without straps everywhere. Light, neat and made for long days.', '50% 50%', 'made-to-order', null, 41, '2026-11-20T23:09:00.000Z'),
+  ('strappy-slingback-thong', 'strappy-slingback-thong', 'Strappy Slingback Thong', 'women', 'Strappy', 10000, 8500, '[{"name":"Tan","hex":"#B9804F"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{}'::integer[], true, false, false, 'Fine straps that look delicate and hold firm. Pairs beautifully with dresses and wide-leg trousers.', '50% 50%', 'made-to-order', null, 42, '2026-11-20T23:08:00.000Z'),
+  ('knot-bow-slide', 'knot-bow-slide', 'Knot Bow Slide', 'women', 'Bow & Knot', 8000, 6500, '[{"name":"White","hex":"#F4F1EA"},{"name":"Grey","hex":"#8D8B88"},{"name":"Tan","hex":"#B9804F"},{"name":"Black","hex":"#1F1B19"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{}'::integer[], true, false, false, 'A soft bow or knot on a comfortable flat sole. Dressy enough for owambe, easy enough for a market run.', '50% 50%', 'made-to-order', null, 43, '2026-11-20T23:06:00.000Z'),
+  ('wrap-toe-loop-slide', 'wrap-toe-loop-slide', 'Wrap Toe-Loop Slide', 'women', 'Toe-Ring', 8000, 6500, '[{"name":"Blue","hex":"#7FA7CF"},{"name":"White","hex":"#F4F1EA"},{"name":"Black","hex":"#1F1B19"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{}'::integer[], true, false, false, 'A toe-ring or thong style that keeps your foot secure without straps everywhere. Light, neat and made for long days.', '50% 50%', 'made-to-order', null, 44, '2026-11-20T23:03:00.000Z'),
+  ('toe-loop-slide', 'toe-loop-slide', 'Toe-Loop Slide', 'women', 'Toe-Ring', 8000, 6500, '[{"name":"Black/White","hex":"#1F1B19"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{}'::integer[], true, false, false, 'A toe-ring or thong style that keeps your foot secure without straps everywhere. Light, neat and made for long days.', '50% 50%', 'made-to-order', null, 45, '2026-11-20T23:02:00.000Z'),
+  ('ring-thong-slingback', 'ring-thong-slingback', 'Ring Thong Slingback', 'women', 'Toe-Ring', 10000, 8500, '[{"name":"Brown","hex":"#6B4127"}]'::jsonb, '{36,37,38,39,40,41,42}'::integer[], '{}'::integer[], true, false, false, 'A toe-ring or thong style that keeps your foot secure without straps everywhere. Light, neat and made for long days.', '50% 50%', 'made-to-order', null, 46, '2026-11-20T23:00:00.000Z'),
+  ('croc-cross-slide', 'croc-cross-slide', 'Croc Cross Slide', 'men-unisex', 'Cross-Strap', 15000, 13500, '[{"name":"Black","hex":"#1F1B19"}]'::jsonb, '{40,41,42,43,44,45,46}'::integer[], '{}'::integer[], true, false, false, 'Crossed straps for a secure fit and a clean look, on a cushioned sole.', '50% 50%', 'made-to-order', null, 47, '2026-11-20T22:59:00.000Z')
 on conflict (id) do nothing;
 
 insert into public.product_images (product_id, url, position)
 select v.product_id, v.url, v.position from (values
-  ('p01', '/products/mf-01.jpg', 0),
-  ('p02', '/products/mf-16.jpg', 0),
-  ('p03', '/products/ruby-red.jpg', 0),
-  ('p04', '/products/mf-04.jpg', 0),
-  ('p05', '/products/mf-13.jpg', 0),
-  ('p06', '/products/mf-08.jpg', 0),
-  ('p07', '/products/mf-02.jpg', 0),
-  ('p08', '/products/mf-11.jpg', 0),
-  ('p09', '/products/mf-15.jpg', 0),
-  ('p10', '/products/navy-trim.jpg', 0),
-  ('p11', '/products/mf-03.jpg', 0),
-  ('p12', '/products/mf-18.jpg', 0),
-  ('p13', '/products/mf-17.jpg', 0),
-  ('p14', '/products/mf-06.jpg', 0),
-  ('p15', '/products/mf-20.jpg', 0),
-  ('p16', '/products/mf-07.jpg', 0),
-  ('p17', '/products/mf-00.jpg', 0),
-  ('p18', '/products/mf-12.jpg', 0),
-  ('p19', '/products/mf-14.jpg', 0),
-  ('p20', '/products/mf-19.jpg', 0)
+  ('buckle-h-slide', '/products/catalog/buckle-h-slide-1.jpg', 0),
+  ('buckle-h-slide', '/products/catalog/buckle-h-slide-2.jpg', 1),
+  ('buckle-h-slide', '/products/catalog/buckle-h-slide-3.jpg', 2),
+  ('bow-slide', '/products/catalog/bow-slide-1.jpg', 0),
+  ('bow-slide', '/products/catalog/bow-slide-2.jpg', 1),
+  ('clasp-slide', '/products/catalog/clasp-slide-1.jpg', 0),
+  ('clasp-slide', '/products/catalog/clasp-slide-2.jpg', 1),
+  ('clasp-slide', '/products/catalog/clasp-slide-3.jpg', 2),
+  ('clasp-slide', '/products/catalog/clasp-slide-4.jpg', 3),
+  ('clasp-slide', '/products/catalog/clasp-slide-5.jpg', 4),
+  ('knotted-strappy-slide', '/products/catalog/knotted-strappy-slide-1.jpg', 0),
+  ('knotted-strappy-slide', '/products/catalog/knotted-strappy-slide-2.jpg', 1),
+  ('knotted-strappy-slide', '/products/catalog/knotted-strappy-slide-3.jpg', 2),
+  ('crystal-knot-slide', '/products/catalog/crystal-knot-slide-1.jpg', 0),
+  ('slingback-thong-sandal', '/products/catalog/slingback-thong-sandal-1.jpg', 0),
+  ('slingback-thong-sandal', '/products/catalog/slingback-thong-sandal-2.jpg', 1),
+  ('pleated-knot-slide', '/products/catalog/pleated-knot-slide-1.jpg', 0),
+  ('mustard-bow-slide', '/products/catalog/mustard-bow-slide-1.jpg', 0),
+  ('classic-h-slide', '/products/catalog/classic-h-slide-1.jpg', 0),
+  ('knotted-thong-platform', '/products/catalog/knotted-thong-platform-1.jpg', 0),
+  ('penny-loafer', '/products/catalog/penny-loafer-1.jpg', 0),
+  ('penny-loafer', '/products/catalog/penny-loafer-2.jpg', 1),
+  ('penny-loafer', '/products/catalog/penny-loafer-3.jpg', 2),
+  ('mens-cross-slide', '/products/catalog/mens-cross-slide-1.jpg', 0),
+  ('mens-cross-slide', '/products/catalog/mens-cross-slide-2.jpg', 1),
+  ('double-strap-cork-slide', '/products/catalog/double-strap-cork-slide-1.jpg', 0),
+  ('double-strap-cork-slide', '/products/catalog/double-strap-cork-slide-2.jpg', 1),
+  ('mens-cut-out-slide', '/products/catalog/mens-cut-out-slide-1.jpg', 0),
+  ('mens-cut-out-slide', '/products/catalog/mens-cut-out-slide-2.jpg', 1),
+  ('buckle-mule', '/products/catalog/buckle-mule-1.jpg', 0),
+  ('mini-platform-thong', '/products/catalog/mini-platform-thong-1.jpg', 0),
+  ('pointed-strappy-thong', '/products/catalog/pointed-strappy-thong-1.jpg', 0),
+  ('quilted-slide', '/products/catalog/quilted-slide-1.jpg', 0),
+  ('medallion-slide', '/products/catalog/medallion-slide-1.jpg', 0),
+  ('denim-buckle-slide', '/products/catalog/denim-buckle-slide-1.jpg', 0),
+  ('suede-cross-platform', '/products/catalog/suede-cross-platform-1.jpg', 0),
+  ('woven-cross-slide', '/products/catalog/woven-cross-slide-1.jpg', 0),
+  ('woven-cross-slide', '/products/catalog/woven-cross-slide-2.jpg', 1),
+  ('woven-cross-slide', '/products/catalog/woven-cross-slide-3.jpg', 2),
+  ('buckle-platform-slide', '/products/catalog/buckle-platform-slide-1.jpg', 0),
+  ('two-tone-h-slide', '/products/catalog/two-tone-h-slide-1.jpg', 0),
+  ('cut-out-bow-slide', '/products/catalog/cut-out-bow-slide-1.jpg', 0),
+  ('crest-cork-slide', '/products/catalog/crest-cork-slide-1.jpg', 0),
+  ('textured-h-slide', '/products/catalog/textured-h-slide-1.jpg', 0),
+  ('crystal-h-slide', '/products/catalog/crystal-h-slide-1.jpg', 0),
+  ('double-strap-slide', '/products/catalog/double-strap-slide-1.jpg', 0),
+  ('knot-thong', '/products/catalog/knot-thong-1.jpg', 0),
+  ('knot-t-strap-sandal', '/products/catalog/knot-t-strap-sandal-1.jpg', 0),
+  ('knot-t-strap-sandal', '/products/catalog/knot-t-strap-sandal-2.jpg', 1),
+  ('wide-strap-slide', '/products/catalog/wide-strap-slide-1.jpg', 0),
+  ('cross-comfort-slide', '/products/catalog/cross-comfort-slide-1.jpg', 0),
+  ('tab-slide', '/products/catalog/tab-slide-1.jpg', 0),
+  ('double-buckle-platform', '/products/catalog/double-buckle-platform-1.jpg', 0),
+  ('suede-tassel-slide', '/products/catalog/suede-tassel-slide-1.jpg', 0),
+  ('toe-loop-buckle-slide', '/products/catalog/toe-loop-buckle-slide-1.jpg', 0),
+  ('suede-buckle-slide', '/products/catalog/suede-buckle-slide-1.jpg', 0),
+  ('double-buckle-cork-slide', '/products/catalog/double-buckle-cork-slide-1.jpg', 0),
+  ('double-strap-suede-slide', '/products/catalog/double-strap-suede-slide-1.jpg', 0),
+  ('double-buckle-suede-slide', '/products/catalog/double-buckle-suede-slide-1.jpg', 0),
+  ('woven-thong', '/products/catalog/woven-thong-1.jpg', 0),
+  ('strappy-slingback-thong', '/products/catalog/strappy-slingback-thong-1.jpg', 0),
+  ('knot-bow-slide', '/products/catalog/knot-bow-slide-1.jpg', 0),
+  ('wrap-toe-loop-slide', '/products/catalog/wrap-toe-loop-slide-1.jpg', 0),
+  ('toe-loop-slide', '/products/catalog/toe-loop-slide-1.jpg', 0),
+  ('ring-thong-slingback', '/products/catalog/ring-thong-slingback-1.jpg', 0),
+  ('croc-cross-slide', '/products/catalog/croc-cross-slide-1.jpg', 0)
 ) as v(product_id, url, position)
 where not exists (select 1 from public.product_images pi where pi.product_id = v.product_id);
 
 insert into public.settings (key, value) values
   ('settings', '{"whatsappNumber":"2349098964885","instagramHandle":"mercy_footwear","tagline":"Walk proud, your feet deserve the best.","deliveryNote":"We deliver nationwide. Delivery fee is confirmed on WhatsApp.","heroVariant":"a","madeToOrder":true,"productionTime":"5–7 working days","fulfilment":{"pickup":true,"delivery":true},"pickupAddress":"Pickup location shared on WhatsApp","pickupHours":"","paymentNote":"Payment details will be confirmed on WhatsApp before production starts."}'::jsonb),
-  ('sale', '{"active":true,"title":"4-Day End of the Year Sale","discountPercent":10,"startsAt":"2026-11-26T00:00:00+01:00","endsAt":"2026-11-29T23:59:59+01:00","deliveryStarts":"2026-12-05","freeGiftMinPairs":4}'::jsonb)
+  ('sale', '{"active":true,"title":"End of Year Sale","startsAt":"","endsAt":"","deliveryStarts":"","freeGiftMinPairs":4}'::jsonb)
 on conflict (key) do nothing;
 
 insert into public.admin_users (email) values ('mercy@gmail.com') on conflict do nothing;

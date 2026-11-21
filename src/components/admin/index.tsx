@@ -224,7 +224,7 @@ export function AdminApp() {
             </div>
           ))}
         </div>
-        {tab === "orders" ? <OrdersTab onCount={onCount} /> : tab === "products" ? <ProductsTab /> : tab === "sale" ? <SaleTab /> : <SettingsTab />}
+        {tab === "orders" ? <OrdersTab onCount={onCount} /> : tab === "products" ? <ProductsTab /> : tab === "sale" ? <SaleTab key={JSON.stringify(data.sale)} /> : <SettingsTab />}
         <p className="text-xs text-muted">
           {mode === "supabase"
             ? `Signed in as ${auth.email}. Changes are saved to the database and show on the store straight away.`

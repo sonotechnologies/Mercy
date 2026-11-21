@@ -6,6 +6,7 @@ import { normalisePhone } from "@/lib/format";
 import type { HeroVariant, Settings } from "@/lib/types";
 import { useStore } from "@/state/store";
 import { CheckIcon } from "../icons";
+import { SaleSwitch } from "./sale";
 import { card, ghostBtn, hint, input, labelCls, primaryBtn, SaveBar, Toggle } from "./ui";
 
 const HEROES: { v: HeroVariant; label: string; hint: string }[] = [
@@ -125,6 +126,7 @@ export function SettingsTab() {
   return (
     <>
       <h1 className="font-serif text-4xl font-semibold">Settings</h1>
+      <SaleSwitch key={String(data.sale.active)} />
       <div className={`${card} flex max-w-[680px] flex-col gap-5 p-5`}>
         <div className={section}>
           <h2 className={h2}>Made to order</h2>

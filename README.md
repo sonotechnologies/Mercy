@@ -64,8 +64,23 @@ SEO: per-product metadata and `Product` structured data, plus `/sitemap.xml` and
 Everything comes from one `sale` object (`src/lib/seed.ts`, editable in Admin → Sale):
 
 - **Before** the start: "Starts in …" countdown and a "Get notified on WhatsApp" button. Prices are normal.
-- **During**: "Ends in …" countdown, the discount on every price, `-10%` badges, and "Delivery starts Dec 5".
-- **After**: the bar and badges disappear and prices go back to normal.
+- **During**: every product with a `salePrice` shows the normal price struck through, a "Sale" pill on cards and "Save ₦…" on the product page. The bag and WhatsApp message show "You save". A countdown appears only if an end date is set.
+- **After** (Admin → Sale or Settings → **End sale now**, or the optional end date passes): the bar, pills and countdown disappear and every product shows its normal price. Sale prices stay saved for the next sale; **Start sale now** brings them back.
+- Prices are set per product (Admin → Products: Normal price + Sale price, also editable inline in the product list).
+
+## Updating the catalogue
+
+Her product pack (`products.json` + `images/`) is imported with:
+
+```bash
+# 1. resize + grade the photos into public/products/catalog/ (any image tool; see git history for the script used)
+# 2. write src/data/catalog.json
+npx tsx scripts/import-catalog.ts path/to/mercy-products
+# 3. regenerate the SQL for Supabase
+npx tsx scripts/build-setup-sql.ts --admin-email mercy@gmail.com
+```
+
+For a database that's already set up, run `supabase/update-catalog.sql` in the Supabase SQL editor: it updates the functions, replaces the demo products with the catalogue and resets the sale settings (existing orders are kept).
 - **Free gift** at `freeGiftMinPairs` (4, i.e. "above 3 pairs"). The bag shows progress, plays a one-time confetti burst when it unlocks, and the gift status goes into the WhatsApp message.
 
 **Preview any stage** without changing dates: add `?preview=upcoming`, `?preview=live` or `?preview=ended` to any URL. It sticks for that browser tab, and `?preview=off` goes back to real time. Admin → Sale has the same links.
@@ -79,7 +94,8 @@ Hello Mercy Footwears 👋 I'd like to order:
 
 1. Ada Bow Slide – Caramel · Size 39 · x1 · ₦7,200
 ...
-Subtotal: ₦21,600 (10% sale discount applied)
+Subtotal: ₦21,600
+You save: ₦3,000 (sale prices)
 🎁 Free gift: not yet (add 1 more pair)
 🚚 Delivery starts Dec 5
 

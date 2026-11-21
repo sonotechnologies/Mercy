@@ -147,8 +147,8 @@ create policy "admin delete product images" on storage.objects for delete to aut
 -- Customer order functions (callable with the public key).
 -- ---------------------------------------------------------------------------
 
--- Places an order. Prices, totals, the free gift and status are worked out here from
--- the catalogue and sale settings; only choices (items, sizes, colours, contact) come from the caller.
+-- Places an order. Prices (each product's own sale price while the sale is on), totals,
+-- the free gift and status are worked out here from the catalogue and sale settings; only choices (items, sizes, colours, contact) come from the caller.
 create or replace function public.place_order(p jsonb) returns jsonb
 language plpgsql security definer set search_path = public as $$
 declare
@@ -156,7 +156,6 @@ declare
   v_sale jsonb;
   v_live boolean := false;
   v_upcoming boolean := false;
-  v_pct numeric := 0;
   v_gift_min int;
   it jsonb;
   pr public.products%rowtype;
@@ -187,13 +186,13 @@ begin
     raise exception '% is not available right now.', initcap(v_ful);
   end if;
 
+  -- Sale: on/off switch with optional start and end dates (empty = no limit).
   select value into v_sale from public.settings where key = 'sale';
   if v_sale is not null and coalesce((v_sale->>'active')::boolean, false) then
-    if now() < (v_sale->>'startsAt')::timestamptz then
+    if nullif(v_sale->>'startsAt', '') is not null and now() < (v_sale->>'startsAt')::timestamptz then
       v_upcoming := true;
-    elsif now() <= (v_sale->>'endsAt')::timestamptz then
+    elsif nullif(v_sale->>'endsAt', '') is null or now() <= (v_sale->>'endsAt')::timestamptz then
       v_live := true;
-      v_pct := least(90, greatest(0, coalesce((v_sale->>'discountPercent')::numeric, 0)));
     end if;
     v_gift_min := greatest(1, coalesce((v_sale->>'freeGiftMinPairs')::int, 4));
   end if;
@@ -206,13 +205,10 @@ begin
     v_qty := greatest(1, least(20, coalesce((it->>'qty')::int, 1)));
     select c->>'name' into v_colour from jsonb_array_elements(pr.colours) c where c->>'name' = it->>'colour' limit 1;
     if v_colour is null then v_colour := pr.colours -> 0 ->> 'name'; end if;
+    -- Each product has its own sale price; without one it stays at the normal price.
     v_unit := pr.price;
-    if v_live then
-      if pr.sale_price is not null and pr.sale_price > 0 and pr.sale_price < pr.price then
-        v_unit := pr.sale_price;
-      else
-        v_unit := (round(pr.price * (1 - v_pct / 100) / 50) * 50)::int;
-      end if;
+    if v_live and pr.sale_price is not null and pr.sale_price > 0 and pr.sale_price < pr.price then
+      v_unit := pr.sale_price;
     end if;
     v_sub := v_sub + v_unit * v_qty;
     v_full := v_full + pr.price * v_qty;
