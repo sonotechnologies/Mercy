@@ -4,7 +4,9 @@ import Link from "next/link";
 import { naira } from "@/lib/format";
 import type { Product } from "@/lib/types";
 import { useCart } from "@/state/cart";
+import { isMadeToOrder } from "@/lib/orders";
 import { useSale } from "@/state/sale";
+import { useStore } from "@/state/store";
 import { PlusIcon } from "./icons";
 import { ProductImage } from "./product-image";
 
@@ -36,7 +38,7 @@ export function Badges({ product, lg = false, inline = false }: { product: Produ
     <span className={`flex gap-1.5 ${inline ? "" : `absolute ${lg ? "top-3 left-3" : "top-2.5 left-2.5"}`}`}>
       {badge && <span className={`${pill} bg-mercy text-cream`}>{badge}</span>}
       {product.isNew && <span className={`${pill} bg-gold text-cocoa`}>New</span>}
-      {!product.inStock && <span className={`${pill} bg-cream text-muted`}>Sold out</span>}
+      {!product.inStock && <span className={`${pill} bg-cream text-muted`}>Unavailable</span>}
     </span>
   );
 }
@@ -52,6 +54,8 @@ type Props = {
 
 export function ProductCard({ product, variant = "grid", sizes = "(min-width:1024px) 280px, 50vw", priority, revealIndex = 0 }: Props) {
   const { openQuick } = useCart();
+  const { data } = useStore();
+  const mto = isMadeToOrder(product, data.settings);
   const strip = variant === "strip";
   return (
     <div
@@ -85,6 +89,9 @@ export function ProductCard({ product, variant = "grid", sizes = "(min-width:102
         {product.name}
       </Link>
       <Price product={product} />
+      {mto && product.inStock && (
+        <span className="self-start rounded-full border border-gold px-2 py-px text-[11px] font-semibold tracking-[.02em] text-ochre">Made to order</span>
+      )}
       {!strip && (
         <span className="flex gap-1.5" role="img" aria-label={`Colours: ${product.colours.map((c) => c.name).join(", ")}`}>
           {product.colours.map((c) => (

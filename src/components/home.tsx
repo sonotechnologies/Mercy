@@ -8,7 +8,7 @@ import { buildChatMessage, buildNotifyMessage, openWhatsApp } from "@/lib/whatsa
 import { useSale } from "@/state/sale";
 import { useStore } from "@/state/store";
 import { BigCountdown } from "./countdown";
-import { BellIcon, ChatIcon, GemIcon, GiftIcon, InstagramIcon, TruckIcon } from "./icons";
+import { BellIcon, ChatIcon, GemIcon, GiftIcon, HammerIcon, InstagramIcon, TruckIcon } from "./icons";
 import { ProductCard } from "./product-card";
 
 const H1 = "m-0 font-serif font-medium leading-[.95] tracking-[-.01em] text-[58px] lg:text-[92px] lg:leading-[.92]";
@@ -32,8 +32,19 @@ function HeroButtons({ light = false, className = "" }: { light?: boolean; class
   );
 }
 
-function Tagline() {
-  return <p className="m-0 text-base lg:text-[19px]">Your feet deserve the best.</p>;
+function Tagline({ center = false }: { center?: boolean }) {
+  const { data } = useStore();
+  return (
+    <>
+      <p className="m-0 text-base lg:text-[19px]">Your feet deserve the best.</p>
+      {data.settings.madeToOrder && (
+        <p className={`m-0 flex items-center gap-2 text-sm font-medium text-ochre lg:text-[15px] ${center ? "justify-center" : ""}`}>
+          <HammerIcon size={16} />
+          Every pair is handmade to order, just for you.
+        </p>
+      )}
+    </>
+  );
 }
 
 function HeroA() {
@@ -84,7 +95,7 @@ function HeroC() {
   return (
     <section className="flex flex-col items-center gap-2 px-5 pt-8 pb-1 text-center lg:mx-auto lg:max-w-[1240px] lg:gap-3 lg:px-12 lg:pt-14 lg:pb-0">
       <h1 className={`${H1} text-[60px]`}>Walk proud.</h1>
-      <Tagline />
+      <Tagline center />
       <HeroButtons className="order-last mt-[18px] w-full lg:order-none lg:mt-3.5 lg:w-auto" />
       <div className="mt-5 grid w-full grid-cols-[1fr_1.15fr_1fr] items-end gap-2 lg:mt-9 lg:grid-cols-5 lg:gap-4">
         <Arch src="/products/mf-13.jpg" h="h-[200px] lg:h-[300px]" focus="50% 70%" />
@@ -223,9 +234,10 @@ function MenStrip() {
 
 function WhyMercy() {
   const { sale, status } = useSale();
+  const { data } = useStore();
   const points = [
     { icon: GemIcon, label: "Quality you can feel" },
-    { icon: TruckIcon, label: "Nationwide delivery" },
+    data.settings.madeToOrder ? { icon: HammerIcon, label: "Made to order — crafted after you order" } : { icon: TruckIcon, label: "Nationwide delivery" },
     status === "live" || status === "upcoming"
       ? { icon: GiftIcon, label: `Free gift on ${sale.freeGiftMinPairs}+ pairs` }
       : { icon: ChatIcon, label: "Order in one WhatsApp tap" },
@@ -295,10 +307,13 @@ function About() {
         <span className="text-[11px] font-semibold tracking-[.18em] text-ochre lg:text-xs">ABOUT MERCY</span>
         <h2 className="m-0 font-serif text-[32px] leading-[1.1] font-semibold lg:text-5xl lg:leading-[1.05]">Let your feet do the talking.</h2>
         <p className="m-0 text-pretty lg:text-[17px]">
-          Mercy Footwears is a slides boutique for women and men. Every pair on our shelves is handpicked for quality and comfort, for every day and every occasion,
-          and every order is confirmed personally on WhatsApp and delivered to your door.
+          {data.settings.madeToOrder
+            ? "Mercy Footwears is a slides boutique for women and men. Every pair is made by hand after you order it, in your size and colour. You order here, we confirm on WhatsApp, we make your pairs, and you pick them up or we deliver when they're ready."
+            : "Mercy Footwears is a slides boutique for women and men. Every pair on our shelves is handpicked for quality and comfort, and every order is confirmed personally on WhatsApp and delivered to your door."}
         </p>
-        <p className="m-0 text-sm text-muted">{data.settings.deliveryNote}</p>
+        <p className="m-0 text-sm text-muted">
+          {data.settings.madeToOrder ? `Ready in ${data.settings.productionTime}. ${data.settings.paymentNote}` : data.settings.deliveryNote}
+        </p>
         <div className="mt-2 flex flex-col gap-2.5 lg:flex-row lg:gap-3">
           <button
             type="button"

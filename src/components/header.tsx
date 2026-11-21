@@ -60,6 +60,7 @@ function useNavLinks() {
   if (status === "live") links.push({ href: "/shop?sale=1", label: "Sale" });
   else if (status === "upcoming") links.push({ href: "/#sale", label: "Sale" });
   links.push({ href: "/#about", label: "About" });
+  links.push({ href: "/track", label: "Track order" });
   return links;
 }
 

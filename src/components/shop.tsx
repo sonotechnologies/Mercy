@@ -4,6 +4,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { FAMILIES, familyOf, type FamilyId } from "@/lib/colour";
 import { naira } from "@/lib/format";
+import { isMadeToOrder } from "@/lib/orders";
 import { MEN_SIZES, STYLES, WOMEN_SIZES } from "@/lib/seed";
 import type { Gender, Product } from "@/lib/types";
 import { useSale } from "@/state/sale";
@@ -38,7 +39,7 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
 const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 
 export function ShopView() {
-  const { products } = useStore();
+  const { products, data } = useStore();
   const { status, priceOf, badgeOf } = useSale();
   const params = useSearchParams();
   const router = useRouter();
@@ -86,7 +87,7 @@ export function ShopView() {
         (!style || p.style === style) &&
         (!onSale || !!badgeOf(p)) &&
         (!colours.length || p.colours.some((c) => colours.includes(familyOf(c.hex)))) &&
-        (!sizes.length || sizes.some((z) => p.sizes.includes(z) && !p.soldOutSizes.includes(z))) &&
+        (!sizes.length || sizes.some((z) => p.sizes.includes(z) && (isMadeToOrder(p, data.settings) || !p.soldOutSizes.includes(z)))) &&
         (!band || PRICE_BANDS.find((b) => b.id === band)!.test(priceOf(p))),
     );
     const score = (p: Product) => (p.inStock ? 0 : 10) - (p.isBestseller ? 2 : 0) - (p.isNew ? 1 : 0);
@@ -97,7 +98,7 @@ export function ShopView() {
       if (sort === "newest") return Number(b.isNew) - Number(a.isNew) || b.createdAt - a.createdAt;
       return score(a) - score(b) || a.createdAt - b.createdAt;
     });
-  }, [pool, query, style, onSale, colours, sizes, band, sort, priceOf, badgeOf]);
+  }, [pool, query, style, onSale, colours, sizes, band, sort, priceOf, badgeOf, data.settings]);
 
   const activeCount = (style ? 1 : 0) + (onSale ? 1 : 0) + colours.length + sizes.length + (band ? 1 : 0);
   const clearAll = () => {

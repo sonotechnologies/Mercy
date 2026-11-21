@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { naira } from "@/lib/format";
+import { isMadeToOrder, productionTimeOf } from "@/lib/orders";
 import { useCart } from "@/state/cart";
 import { useSale } from "@/state/sale";
 import { useStore } from "@/state/store";
@@ -13,7 +14,7 @@ import { Backdrop, useOverlay } from "./ui";
 
 export function QuickAdd() {
   const { quickId, closeQuick, add } = useCart();
-  const { getProduct } = useStore();
+  const { getProduct, data } = useStore();
   const { priceOf } = useSale();
   const open = !!quickId;
   // Keep the last product rendered while the sheet animates out.
@@ -72,6 +73,7 @@ export function QuickAdd() {
               <div className="flex flex-1 flex-col gap-0.5">
                 <span className="font-serif text-2xl leading-[1.1] font-semibold lg:text-[28px]">{product.name}</span>
                 <span className="tabular font-semibold">{naira(priceOf(product))}</span>
+                {isMadeToOrder(product, data.settings) && <span className="text-[13px] text-muted">⏱ Made to order · ready in {productionTimeOf(product, data.settings)}</span>}
               </div>
               <button type="button" onClick={closeQuick} aria-label="Close" className="grid size-11 flex-none place-items-center self-start">
                 <CloseIcon />
@@ -89,6 +91,7 @@ export function QuickAdd() {
             <div className="-mt-1.5">
               <SizePicker
                 product={product}
+                madeToOrder={isMadeToOrder(product, data.settings)}
                 value={size}
                 onChange={(z) => {
                   setSize(z);

@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { naira, shortDate } from "@/lib/format";
 import { hasInternalHistory } from "@/lib/nav";
+import { isMadeToOrder, productionTimeOf } from "@/lib/orders";
 import { buildSingleItemMessage, openWhatsApp } from "@/lib/whatsapp";
 import { useCart } from "@/state/cart";
 import { useSale } from "@/state/sale";
 import { useStore } from "@/state/store";
-import { ChatIcon, CheckIcon, ChevronLeftIcon, GiftIcon, RulerIcon, ShareIcon, TruckIcon } from "./icons";
+import { ChatIcon, CheckIcon, ChevronLeftIcon, ClockIcon, GiftIcon, HammerIcon, RulerIcon, ShareIcon, StoreIcon, TruckIcon } from "./icons";
 import { ColourPicker, QtyStepper, SizePicker } from "./pickers";
 import { Badges, Price, ProductCard } from "./product-card";
 import { ProductImage } from "./product-image";
@@ -99,6 +100,7 @@ export function ProductView({ slug }: { slug: string }) {
       buildSingleItemMessage(
         { name: product.name, colour: product.colours[colour]?.name ?? "", size, qty, total: unit * qty },
         { sale, status, giftMin },
+        mto ? `🧵 Made to order · ready in ${prodTime}` : undefined,
       ),
     );
   };
@@ -127,7 +129,9 @@ export function ProductView({ slug }: { slug: string }) {
     .sort((a, b) => Number(b.style === product.style) - Number(a.style === product.style) || Number(b.isBestseller) - Number(a.isBestseller))
     .slice(0, 4);
 
-  const addLabel = !product.inStock ? "Sold out" : added ? "Added to bag ✓" : "Add to cart";
+  const mto = isMadeToOrder(product, data.settings);
+  const prodTime = productionTimeOf(product, data.settings);
+  const addLabel = !product.inStock ? "Unavailable" : added ? "Added to bag ✓" : "Add to bag";
 
   const slideImg = (s: Slide, i: number, sizes: string) => (
     <ProductImage
@@ -251,11 +255,22 @@ export function ProductView({ slug }: { slug: string }) {
               </div>
               <div className="mt-0.5 flex items-center gap-2.5 lg:mt-1 lg:gap-3">
                 <Price product={product} big />
-                <span className="ml-auto flex items-center gap-1.5 text-[13px] lg:text-sm">
-                  <span className={`size-[7px] rounded-full ${product.inStock ? "bg-leaf" : "bg-tan"}`} />
-                  {product.inStock ? "In stock" : "Sold out"}
-                </span>
+                {!mto || !product.inStock ? (
+                  <span className="ml-auto flex items-center gap-1.5 text-[13px] lg:text-sm">
+                    <span className={`size-[7px] rounded-full ${product.inStock ? "bg-leaf" : "bg-tan"}`} />
+                    {product.inStock ? "In stock" : "Unavailable"}
+                  </span>
+                ) : (
+                  <span className="ml-auto rounded-full border border-gold px-2.5 py-0.5 text-[12px] font-semibold text-ochre">Made to order</span>
+                )}
               </div>
+              {mto && product.inStock && (
+                <span className="mt-1.5 flex items-center gap-2 text-sm font-medium">
+                  <ClockIcon size={17} className="text-gold" />
+                  Ready in {prodTime}
+                  {status === "live" && sale.deliveryStarts ? <span className="font-normal text-muted">· sale orders start {shortDate(sale.deliveryStarts)}</span> : null}
+                </span>
+              )}
               {giftMin != null && (
                 <span className="mt-1 flex items-center gap-2 text-[13px] text-muted lg:text-sm">
                   <GiftIcon size={16} className="text-gold" />
@@ -286,6 +301,7 @@ export function ProductView({ slug }: { slug: string }) {
                 product={product}
                 value={size}
                 lg
+                madeToOrder={mto}
                 onChange={(z) => {
                   setSize(z);
                   setHint(false);
@@ -324,14 +340,19 @@ export function ProductView({ slug }: { slug: string }) {
               </button>
             </div>
 
+            {mto && product.inStock && <HowItWorks time={prodTime} pickup={data.settings.fulfilment.pickup} delivery={data.settings.fulfilment.delivery} />}
             <div className="h-px bg-hair" />
             <p className="m-0 text-pretty">{product.description}</p>
             <div className="flex flex-col gap-3 text-sm lg:text-[15px]">
               <div className="flex items-start gap-2.5">
                 <TruckIcon size={18} className="mt-0.5 flex-none text-gold" />
                 <span>
-                  {data.settings.deliveryNote}
-                  {status === "live" && sale.deliveryStarts ? ` Sale orders ship from ${shortDate(sale.deliveryStarts)}.` : ""}
+                  {data.settings.fulfilment.pickup && data.settings.fulfilment.delivery
+                    ? "Pick up when it's ready, or have it delivered anywhere in Nigeria (fee confirmed on WhatsApp)."
+                    : data.settings.fulfilment.pickup
+                      ? "Pick up when it's ready. Location shared on WhatsApp."
+                      : data.settings.deliveryNote}
+                  {status === "live" && sale.deliveryStarts ? ` Sale orders go into production from ${shortDate(sale.deliveryStarts)}.` : ""}
                 </span>
               </div>
               <div className="flex items-start gap-2.5">
@@ -378,5 +399,32 @@ export function ProductView({ slug }: { slug: string }) {
 
       <SizeGuide open={guide} onClose={() => setGuide(false)} />
     </>
+  );
+}
+
+/** Order → We make it → Ready for pickup or delivery */
+function HowItWorks({ time, pickup, delivery }: { time: string; pickup: boolean; delivery: boolean }) {
+  const last = pickup && delivery ? "Pickup or delivery" : pickup ? "Ready for pickup" : "Delivered to you";
+  const steps = [
+    { icon: ChatIcon, title: "You order", sub: "Confirm on WhatsApp" },
+    { icon: HammerIcon, title: "We make it", sub: time },
+    { icon: pickup ? StoreIcon : TruckIcon, title: last, sub: "We'll message you" },
+  ];
+  return (
+    <div className="rounded-2xl bg-sand p-4">
+      <span className="mb-3 block text-[11px] font-semibold tracking-[.16em] text-ochre">HOW MADE-TO-ORDER WORKS</span>
+      <ol className="grid grid-cols-3 gap-2">
+        {steps.map(({ icon: Icon, title, sub }, i) => (
+          <li key={title} className="relative flex flex-col items-center gap-1.5 text-center">
+            {i < 2 && <span className="absolute top-5 left-[calc(50%+24px)] h-px w-[calc(100%-48px)] bg-gold/50" aria-hidden="true" />}
+            <span className="grid size-10 place-items-center rounded-full bg-cream text-gold">
+              <Icon size={18} strokeWidth={1.5} />
+            </span>
+            <span className="text-[13px] leading-tight font-semibold">{title}</span>
+            <span className="text-[12px] leading-tight text-muted">{sub}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
   );
 }

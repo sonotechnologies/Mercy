@@ -27,11 +27,12 @@ export function ColourPicker({ product, value, onChange, showName = false }: { p
   );
 }
 
-export function SizePicker({ product, value, onChange, lg = false }: { product: Product; value: number | null; onChange: (z: number) => void; lg?: boolean }) {
+/** Made-to-order products can be made in any listed size, so "sold out" sizes only apply to ready stock. */
+export function SizePicker({ product, value, onChange, lg = false, madeToOrder = false }: { product: Product; value: number | null; onChange: (z: number) => void; lg?: boolean; madeToOrder?: boolean }) {
   return (
     <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Size (EU)">
       {product.sizes.map((z) => {
-        const sold = product.soldOutSizes.includes(z) || !product.inStock;
+        const sold = (!madeToOrder && product.soldOutSizes.includes(z)) || !product.inStock;
         const sel = value === z;
         return (
           <button

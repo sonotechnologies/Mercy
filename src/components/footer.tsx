@@ -30,6 +30,7 @@ export function Footer() {
           </div>
           <div className="flex flex-col gap-2.5">
             <span className={head}>HELP</span>
+            <Link href="/track" className="hover:text-cream">Track your order</Link>
             <Link href="/#about" className="hover:text-cream">About</Link>
             <button type="button" onClick={chat} className="text-left hover:text-cream">
               WhatsApp {displayPhone(whatsappNumber)}
