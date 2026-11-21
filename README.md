@@ -24,6 +24,12 @@ npm run build && npm start
 
 **Admin passcode:** `mercy2026`. Share it on the pitch call. It isn't shown anywhere on the site.
 
+## Quality checks
+
+Lighthouse (mobile, production build): Home 91 · Shop 92 · Product 95 performance, with 100 for accessibility, best practices and SEO on all three. No layout shift: the sale state is rendered on the server, and static pages regenerate hourly so the sale bar is right on first paint.
+
+SEO: per-product metadata and `Product` structured data, plus `/sitemap.xml` and `/robots.txt` (admin and bag are excluded).
+
 ## The sale
 
 Everything comes from one `sale` object (`src/lib/seed.ts`, editable in Admin → Sale):
