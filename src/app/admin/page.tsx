@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { AdminApp } from "@/components/admin";
+import { AdminApp } from "@/components/admin/index";
 
 export const metadata: Metadata = { title: "Admin", robots: { index: false, follow: false } };
 

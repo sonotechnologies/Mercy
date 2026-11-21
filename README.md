@@ -1,8 +1,32 @@
-# Mercy Footwears: demo store
+# Mercy Footwears: online store
 
-A mobile-first online store for Mercy Footwears. Orders go straight to her WhatsApp, and the end-of-year sale (Nov 26–29, 2026) runs on its own timer.
+A mobile-first store for Mercy Footwears. **Every pair is made to order**: customers order online, get an order reference, Mercy confirms on WhatsApp, makes the pairs, and the customer picks up (or gets delivery) when they're ready. Customers follow progress on `/track`; Mercy manages everything in `/admin`.
 
-Built with **Next.js 16 (App Router) + TypeScript + Tailwind CSS 4**. No database: the catalogue, sale and settings are seeded from `src/lib/seed.ts`. Admin edits are saved in the browser (localStorage).
+Built with **Next.js 16 (App Router) + TypeScript + Tailwind CSS 4**, with **Supabase** (Postgres, Auth, Storage) for products, orders and photos.
+
+### Two modes
+
+| | Demo mode | Supabase mode |
+| --- | --- | --- |
+| Switched on by | no Supabase env vars | `NEXT_PUBLIC_SUPABASE_URL` + publishable key + secret key |
+| Products & settings | seed data, admin edits saved in this browser | database, live for everyone |
+| Orders & tracking | this browser only | database, any device |
+| Admin login | passcode `mercy2026` | email + password (Supabase Auth) |
+| Photos | small data URLs in the browser | Supabase Storage bucket `product-images` |
+
+## Connecting Supabase
+
+1. Create a Supabase project (free tier is fine).
+2. In the SQL editor, run `supabase/schema.sql` (tables, row-level security, the `product-images` bucket).
+3. Seed the catalogue and create the admin login:
+   ```bash
+   NEXT_PUBLIC_SUPABASE_URL=… SUPABASE_SECRET_KEY=… \
+   npx tsx scripts/setup-supabase.ts --admin-email mercy@example.com --admin-password '…'
+   ```
+4. In Supabase → Authentication → Sign In / Providers, turn **off** "Allow new users to sign up" (only the admin account should exist; access is also limited to emails in `admin_users`).
+5. Add the three env vars from `.env.example` to Vercel and redeploy.
+
+Security: the browser only uses the publishable key. Row-level security lets the public read products and settings; only signed-in admins (listed in `admin_users`) can change them or see orders. Orders are created and looked up through server routes (`/api/orders`, `/api/track`) that recalculate prices from the catalogue and require the matching phone number to track.
 
 ## Run it
 
@@ -20,9 +44,16 @@ npm run build && npm start
 | `/shop` | All products. Women / Men & Unisex tabs, filters (style, colour, price, size, on sale), sort |
 | `/shop/[slug]` | Product page: gallery, colour + size pickers, quantity, size guide, WhatsApp order, "You may also like" |
 | `/cart` | Full-page bag + checkout (the bag also opens as a drawer from the header) |
-| `/admin` | Passcode-protected admin: products, sale, settings |
+| `/track` | Order tracking: reference + phone → status timeline, ready date, pickup details |
+| `/admin` | Orders (status, one-tap WhatsApp updates), products (multi-photo upload), sale, settings |
 
-**Admin passcode:** `mercy2026`. Share it on the pitch call. It isn't shown anywhere on the site.
+## Made to order
+
+- Store-wide switch plus a per-product override (`orderType`), and a production time ("5–7 working days") with per-product override, all in Admin.
+- Cards show a "Made to order" tag; product pages show "Ready in …" and a How it works row. Sizes are never "sold out" for made-to-order pairs.
+- Checkout: name, WhatsApp number, **Pickup or Delivery** (each can be turned off), note. Shows production time and the payment note.
+- Placing an order creates a reference like `MF-24817`, opens WhatsApp with the full order, saves it, and shows a confirmation with **Track order**. Ready dates count working days (Mon–Fri); orders placed during the sale count from the sale's production date.
+- Statuses: Received → Confirmed → In production → Ready for pickup / Out for delivery → Completed (or Cancelled). Admin → Orders changes the status and **Notify** opens WhatsApp to the customer with a ready-made update.
 
 ## Quality checks
 
@@ -62,9 +93,13 @@ Note: …
 
 `src/lib/whatsapp.ts` builds the message. Admin shows a "WhatsApp clicks" counter for the current device.
 
-## Data layer
+## Code map
 
-`src/lib/data-source.ts` defines a small `DataSource` interface (`load / save / clear / subscribe`). The demo uses the localStorage version. To move to Supabase later, implement the same interface and pass it to `<StoreProvider source={…}>`. The UI won't need to change.
+- `src/lib/backend/` — Supabase config, server loader, browser API (`client.ts`) with the demo-mode fallback, row mappers
+- `src/app/api/` — `orders` (create), `track` (lookup), `revalidate` (refresh pages after admin edits)
+- `src/lib/order-build.ts` — builds an order from the catalogue (shared by server and demo mode)
+- `src/lib/orders.ts` — made-to-order helpers, ready dates, statuses, WhatsApp update templates
+- `supabase/schema.sql`, `scripts/setup-supabase.ts` — database setup
 
 ## Assets
 
