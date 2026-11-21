@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import { naira } from "@/lib/format";
 import { useCart } from "@/state/cart";
 import { useSale } from "@/state/sale";
@@ -32,7 +33,8 @@ export function QuickAdd() {
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [quickId]);
 
-  useOverlay(open, closeQuick);
+  const panelRef = useRef<HTMLDivElement>(null);
+  useOverlay(open, closeQuick, panelRef);
 
   const submit = () => {
     if (!product) return;
@@ -47,6 +49,8 @@ export function QuickAdd() {
     <>
       <Backdrop open={open} onClick={closeQuick} z="z-[45]" />
       <div
+        ref={panelRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-label={product ? `Add ${product.name} to bag` : "Quick add"}
@@ -95,6 +99,9 @@ export function QuickAdd() {
             <button type="button" onClick={submit} className="h-[52px] rounded-full bg-cocoa text-[15px] font-semibold text-cream transition-colors hover:bg-mercy">
               Add to cart
             </button>
+            <Link href={`/shop/${product.slug}`} onClick={closeQuick} className="-mt-1 self-center border-b border-gold pb-px text-[13px] font-medium">
+              See full details &amp; size guide
+            </Link>
           </>
         )}
       </div>

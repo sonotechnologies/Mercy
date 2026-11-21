@@ -4,19 +4,52 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { ChatIcon } from "./icons";
 
-/** Locks page scroll while an overlay is open and closes it on Escape. */
-export function useOverlay(open: boolean, onClose: () => void) {
+const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+
+/**
+ * Overlay behaviour for sheets, drawers and modals: locks page scroll, closes on
+ * Escape, moves focus into the panel, keeps Tab inside it, and returns focus to
+ * whatever opened it when it closes.
+ */
+export function useOverlay(open: boolean, onClose: () => void, panel?: React.RefObject<HTMLElement | null>) {
   useEffect(() => {
     if (!open) return;
+    const opener = document.activeElement as HTMLElement | null;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const focusFirst = requestAnimationFrame(() => {
+      const el = panel?.current;
+      if (!el || el.contains(document.activeElement)) return;
+      const target = el.querySelector<HTMLElement>("[data-autofocus]") ?? el.querySelector<HTMLElement>(FOCUSABLE);
+      (target ?? el).focus({ preventScroll: true });
+    });
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      const el = panel?.current;
+      if (e.key !== "Tab" || !el) return;
+      const items = [...el.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((x) => x.offsetParent !== null);
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
     window.addEventListener("keydown", onKey);
     return () => {
+      cancelAnimationFrame(focusFirst);
       document.body.style.overflow = prev;
       window.removeEventListener("keydown", onKey);
+      if (opener && document.contains(opener)) opener.focus({ preventScroll: true });
     };
-  }, [open, onClose]);
+  }, [open, onClose, panel]);
 }
 
 export function Backdrop({ open, onClick, z = "z-40" }: { open: boolean; onClick: () => void; z?: string }) {

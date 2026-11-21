@@ -7,7 +7,7 @@
   --color-tan: #c89b6d;
   --color-tan-ink: #8c6239; /* tan darkened for AA text contrast (struck-through prices) */
   --color-gold: #b8924a;
-  --color-ochre: #8a6a2e; /* eyebrow labels: gold darkened for AA contrast on cream */
+  --color-ochre: #7a5c24; /* eyebrow labels: gold darkened for AA contrast on cream and sand */
   --color-cocoa: #2b1f1a;
   --color-muted: #6b574b;
   --color-mercy: #b3202a;
@@ -78,6 +78,8 @@ a { color: inherit; }
   outline-offset: 2px;
 }
 }
+
+[role="dialog"]:focus { outline: none; }
 
 .no-scrollbar { scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }

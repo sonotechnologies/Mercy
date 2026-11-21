@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useRef } from "react";
 import { buildChatMessage, openWhatsApp } from "@/lib/whatsapp";
 import { useCart } from "@/state/cart";
 import { useSale } from "@/state/sale";
@@ -67,7 +67,8 @@ export function Header() {
   const { data } = useStore();
   const [menu, setMenu] = useState(false);
   const close = useCallback(() => setMenu(false), []);
-  useOverlay(menu, close);
+  const panelRef = useRef<HTMLDivElement>(null);
+  useOverlay(menu, close, panelRef);
   const links = useNavLinks();
   const ig = `https://instagram.com/${data.settings.instagramHandle}`;
   const chat = () => openWhatsApp(data.settings.whatsappNumber, buildChatMessage());
@@ -81,7 +82,7 @@ export function Header() {
           <button type="button" onClick={() => setMenu(true)} aria-label="Menu" aria-expanded={menu} className="grid size-11 place-items-center">
             <MenuIcon size={22} />
           </button>
-          <Link href="/" className="flex justify-center" aria-label="Mercy Footwears home">
+          <Link href="/" className="flex justify-center">
             <Logo size="sm" />
           </Link>
           <BagButton />
@@ -99,7 +100,7 @@ export function Header() {
               </Link>
             ))}
           </nav>
-          <Link href="/" aria-label="Mercy Footwears home">
+          <Link href="/">
             <Logo size="md" />
           </Link>
           <div className="flex items-center justify-end gap-3">
@@ -122,6 +123,8 @@ export function Header() {
       {/* Mobile menu drawer */}
       <Backdrop open={menu} onClick={close} z="z-50" />
       <div
+        ref={panelRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-label="Menu"

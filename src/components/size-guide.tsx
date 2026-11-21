@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { SIZE_GUIDE } from "@/lib/seed";
 import { openWhatsApp } from "@/lib/whatsapp";
 import { useStore } from "@/state/store";
@@ -8,11 +9,14 @@ import { Backdrop, useOverlay } from "./ui";
 
 export function SizeGuide({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { data } = useStore();
-  useOverlay(open, onClose);
+  const panelRef = useRef<HTMLDivElement>(null);
+  useOverlay(open, onClose, panelRef);
   return (
     <>
       <Backdrop open={open} onClick={onClose} z="z-[60]" />
       <div
+        ref={panelRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-label="Size guide"

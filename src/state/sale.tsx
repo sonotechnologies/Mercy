@@ -71,11 +71,16 @@ export function useNow(): number | null {
   return useSyncExternalStore<number | null>(clock.subscribe, clock.get, clock.server);
 }
 
-export function SaleProvider({ children }: { children: React.ReactNode }) {
+/**
+ * `renderedAt` is the server's clock when the HTML was generated. Using it for the
+ * first render keeps the sale bar and prices identical between server HTML and
+ * hydration (no layout shift); the live clock takes over right after mount.
+ */
+export function SaleProvider({ children, renderedAt }: { children: React.ReactNode; renderedAt: number }) {
   const { data } = useStore();
   const sale = data.sale;
   const [preview, setPreview] = useState<SalePreview>(null);
-  const [real, setReal] = useState<SaleStatus | null>(null);
+  const [real, setReal] = useState<SaleStatus>(() => saleStatus(sale, renderedAt));
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- read ?preview= on the client only
@@ -94,8 +99,8 @@ export function SaleProvider({ children }: { children: React.ReactNode }) {
   }, [sale]);
 
   const value = useMemo<SaleCtx>(() => {
-    const known = real !== null;
-    const status: SaleStatus = !known ? "off" : sale.active && preview ? preview : real!;
+    const known = true;
+    const status: SaleStatus = sale.active && preview ? preview : real;
     const target = status === "upcoming" ? Date.parse(sale.startsAt) : status === "live" ? Date.parse(sale.endsAt) : null;
     return {
       sale,

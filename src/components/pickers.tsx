@@ -39,7 +39,6 @@ export function SizePicker({ product, value, onChange, lg = false }: { product: 
             type="button"
             role="radio"
             aria-checked={sel}
-            aria-label={`EU ${z}${sold ? ", sold out" : ""}`}
             disabled={sold}
             onClick={() => onChange(z)}
             className={`tabular rounded-full border px-3 font-medium transition-colors ${lg ? "h-[46px] min-w-14 px-3.5 text-[15px]" : "h-11 min-w-[52px] text-sm"} ${
@@ -50,7 +49,9 @@ export function SizePicker({ product, value, onChange, lg = false }: { product: 
                   : "border-cocoa/20 hover:border-cocoa"
             }`}
           >
+            <span className="sr-only">EU </span>
             {z}
+            {sold && <span className="sr-only">, sold out</span>}
           </button>
         );
       })}
