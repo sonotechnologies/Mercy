@@ -16,17 +16,15 @@ Built with **Next.js 16 (App Router) + TypeScript + Tailwind CSS 4**, with **Sup
 
 ## Connecting Supabase
 
-1. Create a Supabase project (free tier is fine).
-2. In the SQL editor, run `supabase/schema.sql` (tables, row-level security, the `product-images` bucket).
-3. Seed the catalogue and create the admin login:
-   ```bash
-   NEXT_PUBLIC_SUPABASE_URL=… SUPABASE_SECRET_KEY=… \
-   npx tsx scripts/setup-supabase.ts --admin-email mercy@example.com --admin-password '…'
-   ```
-4. In Supabase → Authentication → Sign In / Providers, turn **off** "Allow new users to sign up" (only the admin account should exist; access is also limited to emails in `admin_users`).
-5. Add the three env vars from `.env.example` to Vercel and redeploy.
+Only the project URL and the **publishable** key are used. Customers place and track orders through two database functions (`place_order`, `track_order`) that recalculate prices from the catalogue and check the phone number, so no secret key is needed anywhere.
 
-Security: the browser only uses the publishable key. Row-level security lets the public read products and settings; only signed-in admins (listed in `admin_users`) can change them or see orders. Orders are created and looked up through server routes (`/api/orders`, `/api/track`) that recalculate prices from the catalogue and require the matching phone number to track.
+1. In the Supabase dashboard → **SQL Editor**, paste all of `supabase/setup.sql` and click **Run**. It creates the tables, security rules, photo bucket and functions, loads the 20 current products and settings, and makes `mercy@gmail.com` the admin. It's safe to run again; it never overwrites products edited in the admin.
+   (To regenerate it: `npx tsx scripts/build-setup-sql.ts --admin-email someone@example.com`.)
+2. **Authentication → Users → Add user → Create new user**: email `mercy@gmail.com`, a password, tick **Auto Confirm User**.
+3. **Authentication → Sign In / Providers**: turn **off** "Allow new users to sign up".
+4. In **Vercel → Project → Settings → Environment Variables**, add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (see `.env.example`), then **Redeploy**.
+
+Security: row-level security lets anyone read products and settings; only signed-in admins (emails in `admin_users`) can change them, upload photos, or read and update orders.
 
 ## Run it
 

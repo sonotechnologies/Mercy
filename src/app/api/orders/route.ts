@@ -1,10 +1,12 @@
-import { loadStoreData, serviceClient } from "@/lib/backend/server";
-import { orderToRows } from "@/lib/backend/mappers";
+import { orderFromRow, type OrderRow } from "@/lib/backend/mappers";
+import { loadStoreData, publicClient } from "@/lib/backend/server";
 import { buildOrder, OrderError, type OrderRequest } from "@/lib/order-build";
-import { newOrderRef } from "@/lib/orders";
 import { saleStatus } from "@/lib/sale";
 
-/** Creates an order. Prices are recalculated here from the catalogue. */
+/**
+ * Creates an order. The order is checked here first (friendly errors, ready date),
+ * then saved by the database function place_order, which recalculates every price.
+ */
 export async function POST(request: Request) {
   let req: OrderRequest;
   try {
@@ -13,27 +15,30 @@ export async function POST(request: Request) {
     return Response.json({ error: "Invalid request." }, { status: 400 });
   }
   try {
-    const sb = serviceClient();
+    const sb = publicClient();
     const data = await loadStoreData(sb);
     const now = Date.now();
-    const order = buildOrder(req, { products: data.products, sale: data.sale, settings: data.settings, status: saleStatus(data.sale, now), now });
-
-    // Keep the browser's reference (already in the WhatsApp message) unless it's taken.
-    for (let attempt = 0; attempt < 5; attempt++) {
-      const rows = orderToRows(order);
-      const ins = await sb.from("orders").insert(rows.order);
-      if (!ins.error) {
-        const items = await sb.from("order_items").insert(rows.items);
-        if (items.error) {
-          await sb.from("orders").delete().eq("ref", order.ref);
-          throw items.error;
-        }
-        return Response.json({ order });
-      }
-      if (ins.error.code !== "23505") throw ins.error; // unique violation -> new ref
-      order.ref = newOrderRef();
+    const draft = buildOrder(req, { products: data.products, sale: data.sale, settings: data.settings, status: saleStatus(data.sale, now), now });
+    const { data: row, error } = await sb.rpc("place_order", {
+      p: {
+        ref: draft.ref,
+        name: draft.name,
+        phone: draft.phone,
+        fulfilment: draft.fulfilment,
+        address: draft.address,
+        city: draft.city,
+        state: draft.state,
+        note: draft.note,
+        expectedReady: draft.expectedReady,
+        items: draft.items.map((i) => ({ productId: i.productId, colour: i.colour, size: i.size, qty: i.qty, image: i.image && !i.image.startsWith("data:") ? i.image : null })),
+      },
+    });
+    if (error) {
+      // Messages raised by place_order are written for customers.
+      if (error.code === "P0001") throw new OrderError(error.message);
+      throw error;
     }
-    throw new Error("Couldn't allocate an order reference.");
+    return Response.json({ order: orderFromRow(row as OrderRow) });
   } catch (e) {
     if (e instanceof OrderError) return Response.json({ error: e.message }, { status: 400 });
     console.error("[orders] create failed", e);

@@ -1,19 +1,19 @@
 import { orderFromRow, type OrderRow } from "@/lib/backend/mappers";
-import { serviceClient } from "@/lib/backend/server";
-import { normaliseRef, samePhone } from "@/lib/orders";
+import { publicClient } from "@/lib/backend/server";
+import { normaliseRef } from "@/lib/orders";
 
 export const dynamic = "force-dynamic";
 
-/** Looks up an order by reference + phone (both must match). */
+/** Looks up an order by reference + phone (checked by the database function track_order). */
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const ref = normaliseRef(url.searchParams.get("ref") ?? "");
   const phone = url.searchParams.get("phone") ?? "";
   if (!ref || phone.replace(/\D/g, "").length < 10) return Response.json({ error: "Add your order reference and phone number." }, { status: 400 });
   try {
-    const { data, error } = await serviceClient().from("orders").select("*, order_items(*)").eq("ref", ref).maybeSingle();
+    const { data, error } = await publicClient().rpc("track_order", { p_ref: ref, p_phone: phone });
     if (error) throw error;
-    if (!data || !samePhone((data as OrderRow).phone, phone)) return Response.json({ error: "Order not found." }, { status: 404 });
+    if (!data) return Response.json({ error: "Order not found." }, { status: 404 });
     return Response.json({ order: orderFromRow(data as OrderRow) }, { headers: { "Cache-Control": "no-store" } });
   } catch (e) {
     console.error("[track] lookup failed", e);

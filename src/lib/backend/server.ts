@@ -10,13 +10,6 @@ const opts = { auth: { persistSession: false, autoRefreshToken: false } };
 
 export const publicClient = () => createClient(SUPABASE_URL, SUPABASE_ANON_KEY, opts);
 
-/** Full-access client for API routes. Needs SUPABASE_SECRET_KEY (never exposed to the browser). */
-export function serviceClient(): SupabaseClient {
-  const key = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!hasSupabase || !key) throw new Error("Supabase is not configured on the server (SUPABASE_SECRET_KEY missing).");
-  return createClient(SUPABASE_URL, key, opts);
-}
-
 export const PRODUCT_SELECT = "*, product_images(url, position)";
 
 /** Products, sale and settings from Supabase, merged over the seed defaults. Falls back to the seed on any error. */
