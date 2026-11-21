@@ -25,7 +25,7 @@ const dmSans = DM_Sans({
 const siteUrl = SITE_URL;
 
 const title = "Mercy Footwears · Walk proud";
-const description = "Shop Mercy Footwears online — slides for her and for him. Order on WhatsApp, delivered nationwide. 10% off during the end-of-year sale, Nov 26–29.";
+const description = "Shop Mercy Footwears online — slides for her and for him, handmade to order. Order on WhatsApp, pick up or get it delivered. End of year sale: prices slashed on selected styles.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

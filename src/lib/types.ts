@@ -15,7 +15,7 @@ export type Product = {
   style: string;
   /** Regular price in naira. */
   price: number;
-  /** Optional fixed sale price. When empty, the sale discount % is applied to `price`. */
+  /** Price while the sale is on. Kept when the sale ends so it can be reused. */
   salePrice?: number;
   colours: Colour[];
   sizes: number[];
@@ -38,15 +38,18 @@ export type Product = {
 export type OrderType = "made-to-order" | "ready-stock";
 
 export type SaleConfig = {
+  /** On: products with a salePrice show it (normal price struck through). Off: normal prices only. */
   active: boolean;
   title: string;
-  discountPercent: number;
-  /** ISO date-time with offset, e.g. 2026-11-26T00:00:00+01:00 */
+  /** Optional ISO date-time; before it the sale shows "Starts in". Empty = already running. */
   startsAt: string;
+  /** Optional ISO date-time; the sale switches off by itself after it. Empty = no end date. */
   endsAt: string;
-  /** ISO date, e.g. 2026-12-05 */
+  /** Optional ISO date: production for orders placed during the sale starts on this day. */
   deliveryStarts: string;
   freeGiftMinPairs: number;
+  /** @deprecated Discounts are per product now (salePrice). Kept so old saved data still parses. */
+  discountPercent?: number;
 };
 
 export type HeroVariant = "a" | "b" | "c";

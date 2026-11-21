@@ -9,6 +9,8 @@ export type OrderLine = {
   qty: number;
   /** Line total (unit × qty) */
   total: number;
+  /** Line total at the normal price, to show the sale saving. */
+  full?: number;
 };
 
 export type CustomerDetails = {
@@ -80,8 +82,9 @@ export function buildOrderMessage(o: OrderMessageInput, ctx: OrderContext): stri
   const out: string[] = [];
   out.push(`Hello Mercy Footwears 👋 I'd like to order (Order ${o.ref}):`, "", itemLines(o.lines), "");
 
-  const disc = ctx.status === "live" ? ` (${ctx.sale.discountPercent}% sale discount applied)` : "";
-  out.push(`Subtotal: ${naira(subtotal)}${disc}`);
+  const saved = o.lines.reduce((a, l) => a + Math.max(0, (l.full ?? l.total) - l.total), 0);
+  out.push(`Subtotal: ${naira(subtotal)}`);
+  if (saved > 0) out.push(`You save: ${naira(saved)} (sale prices)`);
   if (ctx.giftMin != null) {
     const left = ctx.giftMin - pairs;
     out.push(left <= 0 ? "🎁 Free gift: yes, unlocked" : `🎁 Free gift: not yet (add ${left} more pair${left > 1 ? "s" : ""})`);
@@ -104,13 +107,14 @@ function readyLabel(iso: string): string {
 }
 
 export function buildSingleItemMessage(line: OrderLine, ctx: OrderContext, extra?: string): string {
-  const disc = ctx.status === "live" ? ` (${ctx.sale.discountPercent}% sale discount applied)` : "";
+  const saved = Math.max(0, (line.full ?? line.total) - line.total);
   return [
     "Hello Mercy Footwears 👋 I'd like to order:",
     "",
     itemLines([line]),
     "",
-    `Subtotal: ${naira(line.total)}${disc}`,
+    `Subtotal: ${naira(line.total)}`,
+    ...(saved > 0 ? [`You save: ${naira(saved)} (sale price)`] : []),
     ...(extra ? [extra] : []),
     "",
     "Please confirm my order and how to pay. Thank you!",

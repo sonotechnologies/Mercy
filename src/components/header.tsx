@@ -12,15 +12,29 @@ import { Logo } from "./logo";
 import { Backdrop, useOverlay } from "./ui";
 
 export function SaleBar() {
-  const { status, sale } = useSale();
+  const { status, sale, target } = useSale();
   if (status !== "live" && status !== "upcoming") return null;
+  const timed = target != null;
   return (
-    <div className="tabular flex justify-center gap-[5px] whitespace-nowrap bg-mercy px-2.5 py-[7px] text-center text-[11px] font-semibold tracking-[.06em] text-cream lg:gap-1.5 lg:px-4 lg:py-[9px] lg:text-xs lg:tracking-[.08em]">
-      <span className="hidden min-[420px]:inline">{sale.title.toUpperCase()} ·</span>
-      <span>{sale.discountPercent}% OFF ·</span>
-      <span>{status === "live" ? "Ends in" : "Starts in"}</span>
-      <InlineCountdown />
-    </div>
+    <Link
+      href={status === "live" ? "/shop?sale=1" : "/#sale"}
+      className="tabular flex justify-center gap-[5px] whitespace-nowrap bg-mercy px-2.5 py-[7px] text-center text-[11px] font-semibold tracking-[.06em] text-cream hover:bg-[#9d1c25] lg:gap-1.5 lg:px-4 lg:py-[9px] lg:text-xs lg:tracking-[.08em]"
+    >
+      <span className={timed ? "hidden min-[420px]:inline" : ""}>{sale.title.toUpperCase()} ·</span>
+      {status === "live" ? (
+        <span>
+          Prices slashed<span className={timed ? "hidden lg:inline" : "hidden min-[400px]:inline"}> on selected styles</span>
+        </span>
+      ) : (
+        <span>Coming soon</span>
+      )}
+      {timed && (
+        <>
+          <span>· {status === "live" ? "Ends in" : "Starts in"}</span>
+          <InlineCountdown />
+        </>
+      )}
+    </Link>
   );
 }
 

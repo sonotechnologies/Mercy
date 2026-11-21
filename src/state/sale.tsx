@@ -101,7 +101,9 @@ export function SaleProvider({ children, renderedAt }: { children: React.ReactNo
   const value = useMemo<SaleCtx>(() => {
     const known = true;
     const status: SaleStatus = sale.active && preview ? preview : real;
-    const target = status === "upcoming" ? Date.parse(sale.startsAt) : status === "live" ? Date.parse(sale.endsAt) : null;
+    // Countdown only when there's a date to count to (no end date = no countdown).
+    const raw = status === "upcoming" ? Date.parse(sale.startsAt) : status === "live" && sale.endsAt ? Date.parse(sale.endsAt) : NaN;
+    const target = Number.isNaN(raw) ? null : raw;
     return {
       sale,
       status,

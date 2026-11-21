@@ -173,7 +173,7 @@ export function CartContents({ onShop, page = false }: { onShop?: () => void; pa
     const message = buildOrderMessage(
       {
         ref,
-        lines: lines.map((l) => ({ name: l.product.name, colour: l.colourName, size: l.size, qty: l.qty, total: l.total })),
+        lines: lines.map((l) => ({ name: l.product.name, colour: l.colourName, size: l.size, qty: l.qty, total: l.total, full: l.product.price * l.qty })),
         customer: who,
         madeToOrder: production.madeToOrder,
         productionTime: production.time,
@@ -290,7 +290,7 @@ export function CartContents({ onShop, page = false }: { onShop?: () => void; pa
           </div>
           {fullTotal > subtotal && (
             <div className="flex justify-between text-mercy">
-              <span>Sale savings ({sale.discountPercent}%)</span>
+              <span>You save (sale prices)</span>
               <span>−{naira(fullTotal - subtotal)}</span>
             </div>
           )}

@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { naira, shortDate } from "@/lib/format";
 import { hasInternalHistory } from "@/lib/nav";
 import { isMadeToOrder, productionTimeOf } from "@/lib/orders";
+import { savingLabel } from "@/lib/sale";
 import { buildSingleItemMessage, openWhatsApp } from "@/lib/whatsapp";
 import { useCart } from "@/state/cart";
 import { useSale } from "@/state/sale";
@@ -98,7 +99,7 @@ export function ProductView({ slug }: { slug: string }) {
     openWhatsApp(
       data.settings.whatsappNumber,
       buildSingleItemMessage(
-        { name: product.name, colour: product.colours[colour]?.name ?? "", size, qty, total: unit * qty },
+        { name: product.name, colour: product.colours[colour]?.name ?? "", size, qty, total: unit * qty, full: product.price * qty },
         { sale, status, giftMin },
         mto ? `🧵 Made to order · ready in ${prodTime}` : undefined,
       ),
@@ -253,22 +254,24 @@ export function ProductView({ slug }: { slug: string }) {
                   {shared ? "Link copied" : "Share"}
                 </button>
               </div>
-              <div className="mt-0.5 flex items-center gap-2.5 lg:mt-1 lg:gap-3">
+              <div className="mt-0.5 flex flex-wrap items-center gap-2.5 lg:mt-1 lg:gap-3">
                 <Price product={product} big />
-                {!mto || !product.inStock ? (
+                {savingLabel(product, status) && (
+                  <span className="rounded-full bg-mercy px-2.5 py-0.5 text-[12px] font-bold text-cream">{savingLabel(product, status)}</span>
+                )}
+                {(!mto || !product.inStock) && (
                   <span className="ml-auto flex items-center gap-1.5 text-[13px] lg:text-sm">
                     <span className={`size-[7px] rounded-full ${product.inStock ? "bg-leaf" : "bg-tan"}`} />
                     {product.inStock ? "In stock" : "Unavailable"}
                   </span>
-                ) : (
-                  <span className="ml-auto rounded-full border border-gold px-2.5 py-0.5 text-[12px] font-semibold text-ochre">Made to order</span>
                 )}
               </div>
               {mto && product.inStock && (
-                <span className="mt-1.5 flex items-center gap-2 text-sm font-medium">
+                <span className="mt-1.5 flex flex-wrap items-center gap-2 text-sm font-medium">
                   <ClockIcon size={17} className="text-gold" />
                   Ready in {prodTime}
                   {status === "live" && sale.deliveryStarts ? <span className="font-normal text-muted">· sale orders start {shortDate(sale.deliveryStarts)}</span> : null}
+                  <span className="ml-auto rounded-full border border-gold px-2.5 py-0.5 text-[12px] font-semibold text-ochre">Made to order</span>
                 </span>
               )}
               {giftMin != null && (
