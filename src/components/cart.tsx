@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { naira, shortDate } from "@/lib/format";
 import { NIGERIAN_STATES } from "@/lib/seed";
 import { buildOrderMessage, openWhatsApp } from "@/lib/whatsapp";
@@ -15,7 +15,7 @@ import { QtyStepper } from "./pickers";
 import { Backdrop, useOverlay } from "./ui";
 
 const field =
-  "rounded-xl border border-cocoa/15 bg-field px-3.5 text-[15px] font-normal text-cocoa outline-none transition-colors placeholder:text-muted/70 focus:border-gold";
+  "rounded-xl border border-cocoa/15 bg-field px-3.5 text-base font-normal text-cocoa outline-none transition-colors placeholder:text-muted/70 focus:border-gold";
 
 export function GiftProgress() {
   const { count } = useCart();
@@ -48,15 +48,33 @@ export function CartContents({ onShop, page = false }: { onShop?: () => void; pa
   const { lines, count, subtotal, fullTotal, setQty, customer, setCustomer } = useCart();
   const { sale, status, giftMin } = useSale();
   const { data } = useStore();
-  const [error, setError] = useState(false);
+  type Field = "name" | "phone" | "address";
+  const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
   const set = (k: keyof typeof customer) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setCustomer({ ...customer, [k]: e.target.value });
-    setError(false);
+    if (k in errors) setErrors((x) => ({ ...x, [k]: undefined }));
   };
+  const invalid = (k: Field) => (errors[k] ? "border-mercy focus:border-mercy" : "");
+  const errorText = (k: Field) =>
+    errors[k] ? (
+      <span id={`err-${k}`} className="text-[13px] font-normal text-mercy">
+        {errors[k]}
+      </span>
+    ) : null;
 
   const send = () => {
-    if (!customer.name.trim() || !customer.phone.trim() || !customer.address.trim()) {
-      setError(true);
+    const digits = customer.phone.replace(/\D/g, "");
+    const next: Partial<Record<Field, string>> = {};
+    if (!customer.name.trim()) next.name = "Please add your name.";
+    if (!digits) next.phone = "Please add your WhatsApp number.";
+    else if (digits.length < 10 || digits.length > 14) next.phone = "That number looks incomplete. Use e.g. 0803 123 4567.";
+    if (customer.address.trim().length < 6) next.address = "Please add your delivery address.";
+    setErrors(next);
+    const first = (["name", "phone", "address"] as Field[]).find((k) => next[k]);
+    if (first) {
+      const el = document.getElementById(`f-${first}`);
+      el?.focus();
+      el?.scrollIntoView({ block: "center", behavior: "smooth" });
       return;
     }
     const msg = buildOrderMessage(
@@ -106,7 +124,12 @@ export function CartContents({ onShop, page = false }: { onShop?: () => void; pa
                 <span className="text-[13px] text-muted">
                   {l.colourName} · EU {l.size}
                 </span>
-                <span className="tabular font-semibold">{naira(l.total)}</span>
+                <span className="flex items-baseline gap-3">
+                  <span className="tabular font-semibold">{naira(l.total)}</span>
+                  <button type="button" onClick={() => setQty(l.key, 0)} className="text-xs text-muted underline-offset-2 hover:text-mercy hover:underline">
+                    Remove<span className="sr-only"> {l.product.name}</span>
+                  </button>
+                </span>
               </div>
               <QtyStepper value={l.qty} min={0} onChange={(n) => setQty(l.key, n)} label={`Quantity of ${l.product.name}`} />
             </li>
@@ -147,15 +170,18 @@ export function CartContents({ onShop, page = false }: { onShop?: () => void; pa
           <h3 className="font-serif text-[26px] font-semibold">Delivery details</h3>
           <label className="flex flex-col gap-1.5 text-[13px] font-medium">
             Full name
-            <input value={customer.name} onChange={set("name")} autoComplete="name" placeholder="e.g. Ada Okafor" className={`${field} h-12`} />
+            <input id="f-name" value={customer.name} onChange={set("name")} autoComplete="name" placeholder="e.g. Ada Okafor" aria-invalid={!!errors.name} aria-describedby={errors.name ? "err-name" : undefined} className={`${field} h-12 ${invalid("name")}`} />
+            {errorText("name")}
           </label>
           <label className="flex flex-col gap-1.5 text-[13px] font-medium">
             Phone (WhatsApp)
-            <input value={customer.phone} onChange={set("phone")} type="tel" inputMode="tel" autoComplete="tel" placeholder="080..." className={`${field} h-12`} />
+            <input id="f-phone" value={customer.phone} onChange={set("phone")} type="tel" inputMode="tel" autoComplete="tel" placeholder="0803 123 4567" aria-invalid={!!errors.phone} aria-describedby={errors.phone ? "err-phone" : undefined} className={`${field} h-12 ${invalid("phone")}`} />
+            {errorText("phone")}
           </label>
           <label className="flex flex-col gap-1.5 text-[13px] font-medium">
             Delivery address
-            <textarea value={customer.address} onChange={set("address")} rows={2} autoComplete="street-address" placeholder="House number, street, area" className={`${field} resize-none py-3`} />
+            <textarea id="f-address" value={customer.address} onChange={set("address")} rows={2} autoComplete="street-address" placeholder="House number, street, area" aria-invalid={!!errors.address} aria-describedby={errors.address ? "err-address" : undefined} className={`${field} resize-none py-3 ${invalid("address")}`} />
+            {errorText("address")}
           </label>
           <div className="grid grid-cols-2 gap-3">
             <label className="flex flex-col gap-1.5 text-[13px] font-medium">
@@ -177,9 +203,9 @@ export function CartContents({ onShop, page = false }: { onShop?: () => void; pa
             Note (optional)
             <input value={customer.note} onChange={set("note")} placeholder="Landmark, preferred time…" className={`${field} h-12`} />
           </label>
-          {error && (
-            <span className="text-[13px] text-mercy" role="alert">
-              Please add your name, phone and address.
+          {Object.values(errors).some(Boolean) && (
+            <span className="sr-only" role="alert">
+              Please fix the highlighted details.
             </span>
           )}
         </form>
@@ -204,7 +230,8 @@ export function CartContents({ onShop, page = false }: { onShop?: () => void; pa
 export function CartDrawer() {
   const { cartOpen, closeCart, count } = useCart();
   const router = useRouter();
-  useOverlay(cartOpen, closeCart);
+  const panelRef = useRef<HTMLElement>(null);
+  useOverlay(cartOpen, closeCart, panelRef);
   const shop = () => {
     closeCart();
     router.push("/shop");
@@ -213,6 +240,8 @@ export function CartDrawer() {
     <>
       <Backdrop open={cartOpen} onClick={closeCart} z="z-[47]" />
       <aside
+        ref={panelRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-label="Your bag"

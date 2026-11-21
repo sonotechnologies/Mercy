@@ -28,12 +28,12 @@ export function Price({ product, className = "", big = false }: { product: Produ
   );
 }
 
-export function Badges({ product, lg = false }: { product: Product; lg?: boolean }) {
+export function Badges({ product, lg = false, inline = false }: { product: Product; lg?: boolean; inline?: boolean }) {
   const { badgeOf } = useSale();
   const badge = badgeOf(product);
   const pill = `rounded-full font-bold ${lg ? "px-[9px] py-[3px] text-xs" : "px-2 py-[3px] text-[11px]"}`;
   return (
-    <span className={`absolute flex gap-1.5 ${lg ? "top-3 left-3" : "top-2.5 left-2.5"}`}>
+    <span className={`flex gap-1.5 ${inline ? "" : `absolute ${lg ? "top-3 left-3" : "top-2.5 left-2.5"}`}`}>
       {badge && <span className={`${pill} bg-mercy text-cream`}>{badge}</span>}
       {product.isNew && <span className={`${pill} bg-gold text-cocoa`}>New</span>}
       {!product.inStock && <span className={`${pill} bg-cream text-muted`}>Sold out</span>}
@@ -86,7 +86,7 @@ export function ProductCard({ product, variant = "grid", sizes = "(min-width:102
       </Link>
       <Price product={product} />
       {!strip && (
-        <span className="flex gap-1.5" aria-label={`Colours: ${product.colours.map((c) => c.name).join(", ")}`}>
+        <span className="flex gap-1.5" role="img" aria-label={`Colours: ${product.colours.map((c) => c.name).join(", ")}`}>
           {product.colours.map((c) => (
             <span key={c.name} className="size-2.5 rounded-full shadow-[inset_0_0_0_1px_rgba(43,31,26,.18)] lg:size-[11px]" style={{ background: c.hex }} />
           ))}

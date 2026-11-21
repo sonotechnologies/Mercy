@@ -1,7 +1,8 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { FAMILIES, familyOf, type FamilyId } from "@/lib/colour";
 import { naira } from "@/lib/format";
 import { MEN_SIZES, STYLES, WOMEN_SIZES } from "@/lib/seed";
 import type { Gender, Product } from "@/lib/types";
@@ -11,32 +12,30 @@ import { CloseIcon, FilterIcon } from "./icons";
 import { ProductCard } from "./product-card";
 import { Backdrop, useOverlay } from "./ui";
 
-type Sort = "newest" | "price-asc" | "price-desc";
+type Sort = "featured" | "newest" | "price-asc" | "price-desc";
 
 const PRICE_BANDS = [
-  { id: "u10", label: "Under ₦10,000", test: (n: number) => n < 10000 },
-  { id: "10-14", label: "₦10,000 – ₦14,000", test: (n: number) => n >= 10000 && n <= 14000 },
-  { id: "o14", label: "Over ₦14,000", test: (n: number) => n > 14000 },
+  { id: "u8", label: "Under ₦8,000", test: (n: number) => n < 8000 },
+  { id: "8-12", label: "₦8,000 – ₦12,000", test: (n: number) => n >= 8000 && n <= 12000 },
+  { id: "o12", label: "Over ₦12,000", test: (n: number) => n > 12000 },
 ];
 
-/** "Mocha & White" -> "Mocha"; groups colours into simple families for the filter. */
-const family = (name: string) => name.split(/\s*[&/,]\s*|\s+/)[0];
-
-function Chip({ active, onClick, children, label }: { active: boolean; onClick: () => void; children: React.ReactNode; label?: string }) {
+function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
     <button
       type="button"
       aria-pressed={active}
-      aria-label={label}
       onClick={onClick}
-      className={`h-9 rounded-full border px-3.5 text-[13px] font-medium transition-colors ${
-        active ? "border-cocoa bg-cocoa text-cream" : "border-cocoa/20 hover:border-cocoa"
+      className={`h-9 flex-none rounded-full border px-3.5 text-[13px] font-medium whitespace-nowrap transition-colors ${
+        active ? "border-cocoa bg-cocoa text-cream" : "border-cocoa/20 bg-cream hover:border-cocoa"
       }`}
     >
       {children}
     </button>
   );
 }
+
+const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 
 export function ShopView() {
   const { products } = useStore();
@@ -47,71 +46,81 @@ export function ShopView() {
 
   const gender: Gender = params.get("g") === "men-unisex" ? "men-unisex" : "women";
   const style = params.get("style");
-  const onSale = params.get("sale") === "1";
+  const onSale = params.get("sale") === "1" && status === "live";
 
-  const [colours, setColours] = useState<string[]>([]);
+  const [query, setQuery] = useState(params.get("q") ?? "");
+  const [colours, setColours] = useState<FamilyId[]>([]);
   const [sizes, setSizes] = useState<number[]>([]);
   const [band, setBand] = useState<string | null>(null);
-  const [sort, setSort] = useState<Sort>("newest");
+  const [sort, setSort] = useState<Sort>("featured");
   const [sheet, setSheet] = useState(false);
   const closeSheet = useCallback(() => setSheet(false), []);
-  useOverlay(sheet, closeSheet);
+  const sheetRef = useRef<HTMLDivElement>(null);
+  useOverlay(sheet, closeSheet, sheetRef);
 
+  const replace = (q: URLSearchParams) => router.replace(`${pathname}?${q.toString()}`, { scroll: false });
   const setParam = (k: string, v: string | null) => {
     const q = new URLSearchParams(params.toString());
     if (v == null) q.delete(k);
     else q.set(k, v);
-    router.replace(`${pathname}?${q.toString()}`, { scroll: false });
+    replace(q);
   };
   const setGender = (g: Gender) => {
     const q = new URLSearchParams(params.toString());
     q.set("g", g);
     q.delete("style");
     setSizes([]);
-    router.replace(`${pathname}?${q.toString()}`, { scroll: false });
+    replace(q);
   };
 
   const pool = useMemo(() => products.filter((p) => p.gender === gender), [products, gender]);
   const styleOptions = STYLES.filter((s) => pool.some((p) => p.style === s));
-  const colourOptions = useMemo(() => {
-    const m = new Map<string, string>();
-    pool.forEach((p) => p.colours.forEach((c) => !m.has(family(c.name)) && m.set(family(c.name), c.hex)));
-    return [...m.entries()];
-  }, [pool]);
+  const familyOptions = useMemo(() => FAMILIES.filter((f) => pool.some((p) => p.colours.some((c) => familyOf(c.hex) === f.id))), [pool]);
   const sizeOptions = gender === "women" ? WOMEN_SIZES : MEN_SIZES;
 
   const list = useMemo(() => {
+    const q = norm(query.trim());
     const out = pool.filter(
       (p: Product) =>
+        (!q || norm(`${p.name} ${p.style} ${p.colours.map((c) => c.name).join(" ")}`).includes(q)) &&
         (!style || p.style === style) &&
         (!onSale || !!badgeOf(p)) &&
-        (!colours.length || p.colours.some((c) => colours.includes(family(c.name)))) &&
+        (!colours.length || p.colours.some((c) => colours.includes(familyOf(c.hex)))) &&
         (!sizes.length || sizes.some((z) => p.sizes.includes(z) && !p.soldOutSizes.includes(z))) &&
         (!band || PRICE_BANDS.find((b) => b.id === band)!.test(priceOf(p))),
     );
-    return out.sort((a, b) =>
-      sort === "price-asc" ? priceOf(a) - priceOf(b) : sort === "price-desc" ? priceOf(b) - priceOf(a) : Number(b.isNew) - Number(a.isNew) || b.createdAt - a.createdAt,
-    );
-  }, [pool, style, onSale, colours, sizes, band, sort, priceOf, badgeOf]);
+    const score = (p: Product) => (p.inStock ? 0 : 10) - (p.isBestseller ? 2 : 0) - (p.isNew ? 1 : 0);
+    return out.sort((a, b) => {
+      if (a.inStock !== b.inStock) return a.inStock ? -1 : 1; // sold out always last
+      if (sort === "price-asc") return priceOf(a) - priceOf(b);
+      if (sort === "price-desc") return priceOf(b) - priceOf(a);
+      if (sort === "newest") return Number(b.isNew) - Number(a.isNew) || b.createdAt - a.createdAt;
+      return score(a) - score(b) || a.createdAt - b.createdAt;
+    });
+  }, [pool, query, style, onSale, colours, sizes, band, sort, priceOf, badgeOf]);
 
   const activeCount = (style ? 1 : 0) + (onSale ? 1 : 0) + colours.length + sizes.length + (band ? 1 : 0);
   const clearAll = () => {
     setColours([]);
     setSizes([]);
     setBand(null);
+    setQuery("");
     const q = new URLSearchParams();
     q.set("g", gender);
-    router.replace(`${pathname}?${q.toString()}`, { scroll: false });
+    replace(q);
   };
   const toggle = <T,>(arr: T[], v: T) => (arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
   const prices = pool.map(priceOf);
+  const legend = "mb-2.5 text-xs font-semibold tracking-[.14em] text-ochre";
 
   const filters = (
     <div className="flex flex-col gap-6">
-      <fieldset className="flex flex-col gap-2.5">
-        <legend className="mb-2.5 text-xs font-semibold tracking-[.14em] text-ochre">STYLE</legend>
+      <fieldset>
+        <legend className={legend}>STYLE</legend>
         <div className="flex flex-wrap gap-2">
-          <Chip active={!style} onClick={() => setParam("style", null)}>All</Chip>
+          <Chip active={!style} onClick={() => setParam("style", null)}>
+            All
+          </Chip>
           {styleOptions.map((s) => (
             <Chip key={s} active={style === s} onClick={() => setParam("style", style === s ? null : s)}>
               {s}
@@ -126,20 +135,20 @@ export function ShopView() {
         </label>
       )}
       <fieldset>
-        <legend className="mb-2.5 text-xs font-semibold tracking-[.14em] text-ochre">COLOUR</legend>
+        <legend className={legend}>COLOUR</legend>
         <div className="flex flex-wrap gap-2">
-          {colourOptions.map(([name, hex]) => (
-            <Chip key={name} active={colours.includes(name)} onClick={() => setColours((c) => toggle(c, name))}>
+          {familyOptions.map((f) => (
+            <Chip key={f.id} active={colours.includes(f.id)} onClick={() => setColours((c) => toggle(c, f.id))}>
               <span className="flex items-center gap-1.5">
-                <span className="size-3 rounded-full shadow-[inset_0_0_0_1px_rgba(43,31,26,.2)]" style={{ background: hex }} />
-                {name}
+                <span className="size-3 rounded-full shadow-[inset_0_0_0_1px_rgba(43,31,26,.2)]" style={{ background: f.swatch }} />
+                {f.label}
               </span>
             </Chip>
           ))}
         </div>
       </fieldset>
       <fieldset>
-        <legend className="mb-2.5 text-xs font-semibold tracking-[.14em] text-ochre">PRICE</legend>
+        <legend className={legend}>PRICE</legend>
         <div className="flex flex-wrap gap-2">
           {PRICE_BANDS.map((b) => (
             <Chip key={b.id} active={band === b.id} onClick={() => setBand(band === b.id ? null : b.id)}>
@@ -154,10 +163,11 @@ export function ShopView() {
         )}
       </fieldset>
       <fieldset>
-        <legend className="mb-2.5 text-xs font-semibold tracking-[.14em] text-ochre">SIZE (EU)</legend>
+        <legend className={legend}>SIZE (EU)</legend>
         <div className="flex flex-wrap gap-2">
           {sizeOptions.map((z) => (
-            <Chip key={z} active={sizes.includes(z)} onClick={() => setSizes((s) => toggle(s, z))} label={`EU ${z}`}>
+            <Chip key={z} active={sizes.includes(z)} onClick={() => setSizes((s) => toggle(s, z))}>
+              <span className="sr-only">EU </span>
               <span className="tabular">{z}</span>
             </Chip>
           ))}
@@ -172,33 +182,61 @@ export function ShopView() {
   );
 
   return (
-    <div className="px-5 pt-6 pb-16 lg:mx-auto lg:max-w-[1240px] lg:px-12 lg:pt-12 lg:pb-24">
-      <div className="flex flex-col gap-1.5">
+    <div className="pt-6 pb-16 lg:mx-auto lg:max-w-[1240px] lg:px-12 lg:pt-12 lg:pb-24">
+      <div className="flex flex-col gap-1.5 px-5 lg:px-0">
         <span className="text-[11px] font-semibold tracking-[.18em] text-ochre lg:text-xs">{onSale ? "END OF YEAR SALE" : "SHOP"}</span>
         <h1 className="m-0 font-serif text-[34px] leading-[1.05] font-semibold lg:text-6xl">{gender === "women" ? "Women's slides" : "Men & Unisex"}</h1>
       </div>
 
-      <div className="mt-5 flex gap-1 rounded-full border border-hair p-1 lg:inline-flex" role="tablist" aria-label="Collection">
-        {(
-          [
-            ["women", "Women"],
-            ["men-unisex", "Men & Unisex"],
-          ] as const
-        ).map(([g, label]) => (
-          <button
-            key={g}
-            role="tab"
-            type="button"
-            aria-selected={gender === g}
-            onClick={() => setGender(g)}
-            className={`h-10 flex-1 rounded-full px-5 text-sm font-semibold transition-colors lg:flex-none ${gender === g ? "bg-cocoa text-cream" : "hover:bg-sand"}`}
-          >
-            {label}
-          </button>
+      <div className="mt-5 flex flex-col gap-3 px-5 lg:flex-row lg:items-center lg:justify-between lg:px-0">
+        <div className="flex gap-1 rounded-full border border-hair p-1 lg:inline-flex" role="tablist" aria-label="Collection">
+          {(
+            [
+              ["women", "Women"],
+              ["men-unisex", "Men & Unisex"],
+            ] as const
+          ).map(([g, label]) => (
+            <button
+              key={g}
+              role="tab"
+              type="button"
+              aria-selected={gender === g}
+              onClick={() => setGender(g)}
+              className={`h-10 flex-1 rounded-full px-5 text-sm font-semibold transition-colors lg:flex-none ${gender === g ? "bg-cocoa text-cream" : "hover:bg-sand"}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <label className="relative block lg:w-[300px]">
+          <span className="sr-only">Search slides</span>
+          <svg className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-muted" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.5-3.5" />
+          </svg>
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search bow, toe-ring, black…"
+            className="h-11 w-full rounded-full border border-cocoa/15 bg-field pr-4 pl-11 text-base outline-none placeholder:text-muted/80 focus:border-gold lg:text-sm"
+          />
+        </label>
+      </div>
+
+      {/* Mobile: one-tap style row */}
+      <div className="no-scrollbar mt-4 flex gap-2 overflow-x-auto px-5 lg:hidden" aria-label="Styles">
+        <Chip active={!style} onClick={() => setParam("style", null)}>
+          All styles
+        </Chip>
+        {styleOptions.map((s) => (
+          <Chip key={s} active={style === s} onClick={() => setParam("style", style === s ? null : s)}>
+            {s}
+          </Chip>
         ))}
       </div>
 
-      <div className="mt-6 lg:grid lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-12">
+      <div className="mt-4 px-5 lg:mt-8 lg:grid lg:grid-cols-[250px_minmax(0,1fr)] lg:gap-12 lg:px-0">
         <aside className="hidden lg:block" aria-label="Filters">
           <div className="sticky top-32">{filters}</div>
         </aside>
@@ -208,7 +246,7 @@ export function ShopView() {
             <button
               type="button"
               onClick={() => setSheet(true)}
-              className="flex h-10 items-center gap-2 rounded-full border border-cocoa/20 px-4 text-sm font-medium lg:hidden"
+              className={`flex h-10 items-center gap-2 rounded-full border px-4 text-sm font-medium lg:hidden ${activeCount ? "border-cocoa bg-cocoa text-cream" : "border-cocoa/20"}`}
             >
               <FilterIcon size={16} />
               Filters{activeCount ? ` (${activeCount})` : ""}
@@ -221,8 +259,9 @@ export function ShopView() {
               <select
                 value={sort}
                 onChange={(e) => setSort(e.target.value as Sort)}
-                className="h-10 rounded-full border border-cocoa/20 bg-field px-3.5 text-sm font-medium outline-none focus:border-gold"
+                className="h-10 rounded-full border border-cocoa/20 bg-field px-3.5 text-base font-medium outline-none focus:border-gold lg:text-sm"
               >
+                <option value="featured">Featured</option>
                 <option value="newest">Newest</option>
                 <option value="price-asc">Price: low to high</option>
                 <option value="price-desc">Price: high to low</option>
@@ -233,15 +272,15 @@ export function ShopView() {
           {list.length ? (
             <div className="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 lg:gap-x-6 lg:gap-y-10">
               {list.map((p, i) => (
-                <ProductCard key={p.id} product={p} revealIndex={i} sizes="(min-width:1024px) 290px, (min-width:640px) 33vw, 50vw" priority={i < 4} />
+                <ProductCard key={p.id} product={p} revealIndex={i} sizes="(min-width:1024px) 290px, (min-width:640px) 33vw, 50vw" priority={i < 2} />
               ))}
             </div>
           ) : (
             <div className="flex flex-col items-center gap-3 rounded-2xl bg-sand px-6 py-14 text-center">
-              <span className="font-serif text-[26px] font-semibold">Nothing matches those filters.</span>
+              <span className="font-serif text-[26px] font-semibold">Nothing matches that.</span>
               <p className="text-sm text-muted">Try fewer filters, or ask Mercy on WhatsApp. She may have it in the shop.</p>
               <button type="button" onClick={clearAll} className="mt-1 h-11 rounded-full bg-cocoa px-6 text-sm font-semibold text-cream hover:bg-mercy">
-                Clear filters
+                Clear search &amp; filters
               </button>
             </div>
           )}
@@ -251,6 +290,8 @@ export function ShopView() {
       {/* Mobile filter sheet */}
       <Backdrop open={sheet} onClick={closeSheet} z="z-[45] lg:hidden" />
       <div
+        ref={sheetRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-label="Filters"

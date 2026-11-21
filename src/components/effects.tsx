@@ -1,7 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { markNavigation } from "@/lib/nav";
 import { buildChatMessage, openWhatsApp } from "@/lib/whatsapp";
 import { useCart } from "@/state/cart";
 import { useStore } from "@/state/store";
@@ -58,24 +60,75 @@ export function GiftCelebration() {
   );
 }
 
-/** "Chat with us" pill on every storefront page. */
+/** "Chat with us" pill on every storefront page. Collapses to an icon once you scroll on phones. */
 export function FloatingWhatsApp() {
   const { data } = useStore();
   const pathname = usePathname();
+  const [compact, setCompact] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setCompact(window.scrollY > 240);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [pathname]);
   const onProduct = pathname.startsWith("/shop/");
   if (pathname.startsWith("/admin") || pathname === "/cart") return null;
   return (
     <button
       type="button"
       onClick={() => openWhatsApp(data.settings.whatsappNumber, buildChatMessage())}
-      aria-label="Chat with us on WhatsApp"
-      className={`fixed right-4 z-20 h-12 items-center gap-2 rounded-full bg-wa pr-4 pl-3.5 text-sm font-semibold text-cocoa shadow-[0_8px_24px_rgba(43,31,26,.18)] transition-transform hover:-translate-y-0.5 lg:right-6 lg:bottom-6 ${
-        onProduct ? "hidden lg:flex" : "flex bottom-[calc(16px+env(safe-area-inset-bottom))]"
-      }`}
+      className={`fixed right-4 z-20 h-12 items-center justify-center gap-2 overflow-hidden rounded-full bg-wa text-sm font-semibold whitespace-nowrap text-cocoa shadow-[0_8px_24px_rgba(43,31,26,.18)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#3ee07a] lg:right-6 lg:bottom-6 lg:w-auto lg:pr-4 lg:pl-3.5 ${
+        compact ? "w-12 px-0" : "w-[136px] pr-4 pl-3.5"
+      } ${onProduct ? "hidden lg:flex" : "flex bottom-[calc(16px+env(safe-area-inset-bottom))]"}`}
     >
-      <ChatIcon size={20} />
-      Chat with us
+      <ChatIcon size={20} className="flex-none" />
+      <span className={compact ? "sr-only lg:not-sr-only" : ""}>Chat with us</span>
+      <span className="sr-only"> on WhatsApp</span>
     </button>
+  );
+}
+
+/** "Added to bag" confirmation with a shortcut to the bag. */
+export function AddedToast() {
+  const { lastAdded, dismissAdded, openCart, cartOpen } = useCart();
+  const { getProduct } = useStore();
+  const pathname = usePathname();
+  useEffect(() => {
+    if (!lastAdded) return;
+    const t = setTimeout(dismissAdded, 3500);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- restart the timer for each add
+  }, [lastAdded?.n]);
+  const p = lastAdded ? getProduct(lastAdded.productId) : undefined;
+  const show = !!(lastAdded && p && !cartOpen);
+  const img = p ? (p.colours[lastAdded!.colour]?.image ?? p.images[0]) : "";
+  const onProduct = pathname.startsWith("/shop/");
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className={`fixed inset-x-3 z-[65] mx-auto max-w-[420px] transition-all duration-300 ease-out-soft lg:inset-x-auto lg:top-[120px] lg:right-6 lg:bottom-auto lg:w-[380px] ${
+        onProduct ? "bottom-[92px]" : "bottom-[calc(76px+env(safe-area-inset-bottom))]"
+      } ${show ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-3 opacity-0"}`}
+    >
+      {show && p && (
+        <div className="flex items-center gap-3 rounded-2xl bg-cocoa p-2.5 pr-3 text-cream shadow-[0_12px_32px_rgba(43,31,26,.28)]">
+          <span className="relative h-14 w-11 flex-none overflow-hidden rounded-lg bg-sand">
+            <Image src={img} alt="" fill sizes="44px" unoptimized={img.startsWith("data:")} className="object-cover" />
+          </span>
+          <span className="min-w-0 flex-1 text-sm leading-tight">
+            <span className="block font-semibold">Added to bag</span>
+            <span className="block truncate text-cream/75">
+              {p.name} · EU {lastAdded!.size}
+              {lastAdded!.qty > 1 ? ` · x${lastAdded!.qty}` : ""}
+            </span>
+          </span>
+          <button type="button" onClick={openCart} className="h-9 flex-none rounded-full bg-cream px-3.5 text-[13px] font-semibold text-cocoa hover:bg-white">
+            View bag
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -119,5 +172,14 @@ export function RevealObserver() {
       mo.disconnect();
     };
   }, []);
+  return null;
+}
+
+/** Records each route change (see lib/nav). */
+export function NavTracker() {
+  const pathname = usePathname();
+  useEffect(() => {
+    markNavigation();
+  }, [pathname]);
   return null;
 }

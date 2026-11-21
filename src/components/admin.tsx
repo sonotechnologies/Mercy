@@ -18,7 +18,7 @@ const PASSCODE = "mercy2026";
 const AUTH_KEY = "mf.admin";
 
 const input =
-  "h-11 w-full rounded-xl border border-cocoa/15 bg-white px-3 text-[15px] text-cocoa outline-none transition-colors focus:border-gold";
+  "h-11 w-full rounded-xl border border-cocoa/15 bg-white px-3 text-base text-cocoa outline-none lg:text-[15px] transition-colors focus:border-gold";
 const labelCls = "flex flex-col gap-1.5 text-[13px] font-medium";
 const card = "rounded-2xl border border-gold/45 bg-field";
 const primaryBtn = "inline-flex h-11 items-center justify-center gap-2 rounded-full bg-cocoa px-5 text-sm font-semibold text-cream transition-colors hover:bg-mercy disabled:opacity-50";
@@ -424,9 +424,9 @@ function ProductsTab() {
     <>
       <div className="flex flex-wrap items-baseline justify-between gap-3">
         <h1 className="font-serif text-4xl font-semibold">Products</h1>
-        <div className="flex gap-2">
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search" aria-label="Search products" className={`${input} h-10 w-40`} />
-          <button type="button" onClick={() => setDraft(blankProduct())} className={`${primaryBtn} h-10`}>
+        <div className="flex w-full gap-2 sm:w-auto">
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search" aria-label="Search products" className={`${input} h-10 min-w-0 flex-1 sm:w-44 sm:flex-none`} />
+          <button type="button" onClick={() => setDraft(blankProduct())} className={`${primaryBtn} h-10 flex-none whitespace-nowrap`}>
             <PlusIcon size={16} /> Add product
           </button>
         </div>
@@ -721,14 +721,14 @@ export function AdminApp() {
 
   return (
     <div className="min-h-dvh bg-cream">
-      <header className="flex flex-wrap items-center gap-4 border-b border-hair px-5 py-3.5 lg:px-7">
+      <header className="sticky top-0 z-30 flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-hair bg-cream/95 px-5 py-3 backdrop-blur-md lg:px-7">
         <Link href="/" className="flex items-center gap-2.5">
           <span className="grid size-9 place-items-center rounded-[10px] bg-cocoa">
             <LogoMark width={24} tone="monogram" />
           </span>
           <span className="font-semibold">Mercy Footwears · Admin</span>
         </Link>
-        <nav className="ml-auto flex gap-1" aria-label="Admin sections">
+        <nav className="order-last flex w-full gap-1 sm:order-none sm:ml-auto sm:w-auto" aria-label="Admin sections">
           {(
             [
               ["products", "Products"],
@@ -741,7 +741,7 @@ export function AdminApp() {
               type="button"
               aria-current={tab === k ? "page" : undefined}
               onClick={() => setTab(k)}
-              className={`h-[38px] rounded-full px-4 text-sm font-medium ${tab === k ? "bg-cocoa text-cream" : "hover:bg-sand"}`}
+              className={`h-[38px] flex-1 rounded-full px-4 text-sm font-medium sm:flex-none ${tab === k ? "bg-cocoa text-cream" : "hover:bg-sand"}`}
             >
               {label}
             </button>

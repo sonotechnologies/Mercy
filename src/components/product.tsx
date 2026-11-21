@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { naira, shortDate } from "@/lib/format";
+import { hasInternalHistory } from "@/lib/nav";
 import { buildSingleItemMessage, openWhatsApp } from "@/lib/whatsapp";
 import { useCart } from "@/state/cart";
 import { useSale } from "@/state/sale";
 import { useStore } from "@/state/store";
-import { ChatIcon, ChevronLeftIcon, RulerIcon, TruckIcon } from "./icons";
+import { ChatIcon, CheckIcon, ChevronLeftIcon, GiftIcon, RulerIcon, ShareIcon, TruckIcon } from "./icons";
 import { ColourPicker, QtyStepper, SizePicker } from "./pickers";
 import { Badges, Price, ProductCard } from "./product-card";
 import { ProductImage } from "./product-image";
@@ -28,6 +30,8 @@ export function ProductView({ slug }: { slug: string }) {
   const [slide, setSlide] = useState(0);
   const [guide, setGuide] = useState(false);
   const [added, setAdded] = useState(false);
+  const [shared, setShared] = useState(false);
+  const router = useRouter();
   const gallery = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -35,6 +39,12 @@ export function ProductView({ slug }: { slug: string }) {
     const t = setTimeout(() => setAdded(false), 1500);
     return () => clearTimeout(t);
   }, [added]);
+
+  useEffect(() => {
+    if (!shared) return;
+    const t = setTimeout(() => setShared(false), 2000);
+    return () => clearTimeout(t);
+  }, [shared]);
 
   if (!product) {
     if (!ready) return <div className="h-[80vh]" />;
@@ -93,6 +103,25 @@ export function ProductView({ slug }: { slug: string }) {
     );
   };
 
+  const goBack = () => {
+    // Go back if the visitor came from within the store, otherwise open the shop.
+    if (hasInternalHistory()) router.back();
+    else router.push(`/shop?g=${product.gender}`);
+  };
+  const share = async () => {
+    const url = location.href;
+    const text = `${product.name} from Mercy Footwears, ${naira(priceOf(product))}`;
+    try {
+      if (navigator.share) await navigator.share({ title: product.name, text, url });
+      else {
+        await navigator.clipboard.writeText(url);
+        setShared(true);
+      }
+    } catch {
+      /* cancelled */
+    }
+  };
+
   const related = products
     .filter((p) => p.id !== product.id && p.gender === product.gender)
     .sort((a, b) => Number(b.style === product.style) - Number(a.style === product.style) || Number(b.isBestseller) - Number(a.isBestseller))
@@ -116,10 +145,10 @@ export function ProductView({ slug }: { slug: string }) {
     <>
       <div className="lg:mx-auto lg:max-w-[1240px] lg:px-12">
         <div className="hidden pt-5 lg:block">
-          <Link href={`/shop?g=${product.gender}`} className="inline-flex h-11 items-center gap-1.5 rounded-full border border-gold/60 pr-4 pl-2.5 text-sm font-medium hover:bg-sand">
+          <button type="button" onClick={goBack} className="inline-flex h-11 items-center gap-1.5 rounded-full border border-gold/60 pr-4 pl-2.5 text-sm font-medium hover:bg-sand">
             <ChevronLeftIcon size={18} />
             Back to shop
-          </Link>
+          </button>
         </div>
 
         <div className="lg:grid lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:items-start lg:gap-16 lg:pt-6 lg:pb-[72px]">
@@ -143,15 +172,24 @@ export function ProductView({ slug }: { slug: string }) {
                   </div>
                 ))}
               </div>
-              <Link
-                href={`/shop?g=${product.gender}`}
-                aria-label="Back to shop"
+              <button
+                type="button"
+                onClick={goBack}
+                aria-label="Back"
                 className="absolute top-3.5 left-3.5 grid size-11 place-items-center rounded-full bg-cream/90 shadow-soft"
               >
                 <ChevronLeftIcon />
-              </Link>
-              <Badges product={product} />
-              <div className="absolute inset-x-0 bottom-3.5 flex justify-center gap-1.5">
+              </button>
+              <button
+                type="button"
+                onClick={share}
+                aria-label={shared ? "Link copied" : "Share"}
+                className="absolute top-3.5 right-3.5 grid size-11 place-items-center rounded-full bg-cream/90 shadow-soft"
+              >
+                {shared ? <CheckIcon size={20} /> : <ShareIcon size={20} />}
+              </button>
+              <span className="absolute top-[70px] left-3.5"><Badges product={product} inline /></span>
+              <div className="absolute inset-x-0 bottom-2 flex justify-center">
                 {slides.map((_, i) => (
                   <button
                     key={i}
@@ -159,9 +197,13 @@ export function ProductView({ slug }: { slug: string }) {
                     aria-label={`Photo ${i + 1}`}
                     aria-current={i === slide}
                     onClick={() => goSlide(i)}
-                    className="h-1.5 rounded-full transition-[width] duration-250"
-                    style={{ width: i === slide ? 18 : 6, background: i === slide ? "#2B1F1A" : "rgba(43,31,26,.28)" }}
-                  />
+                    className="grid h-6 min-w-6 place-items-center px-[3px]"
+                  >
+                    <span
+                      className="block h-1.5 rounded-full transition-[width] duration-250"
+                      style={{ width: i === slide ? 18 : 6, background: i === slide ? "#2B1F1A" : "rgba(43,31,26,.28)" }}
+                    />
+                  </button>
                 ))}
               </div>
             </div>
@@ -196,7 +238,17 @@ export function ProductView({ slug }: { slug: string }) {
                 {product.style.toUpperCase()}
                 {product.gender === "men-unisex" ? " · MEN & UNISEX" : ""}
               </span>
-              <h1 className="m-0 font-serif text-4xl leading-[1.05] font-semibold lg:text-[56px] lg:leading-none">{product.name}</h1>
+              <div className="flex items-start justify-between gap-3">
+                <h1 className="m-0 font-serif text-4xl leading-[1.05] font-semibold lg:text-[56px] lg:leading-none">{product.name}</h1>
+                <button
+                  type="button"
+                  onClick={share}
+                  className="mt-2 hidden h-10 flex-none items-center gap-1.5 rounded-full border border-gold/60 px-3.5 text-sm font-medium hover:bg-sand lg:flex"
+                >
+                  {shared ? <CheckIcon size={16} /> : <ShareIcon size={16} />}
+                  {shared ? "Link copied" : "Share"}
+                </button>
+              </div>
               <div className="mt-0.5 flex items-center gap-2.5 lg:mt-1 lg:gap-3">
                 <Price product={product} big />
                 <span className="ml-auto flex items-center gap-1.5 text-[13px] lg:text-sm">
@@ -204,6 +256,12 @@ export function ProductView({ slug }: { slug: string }) {
                   {product.inStock ? "In stock" : "Sold out"}
                 </span>
               </div>
+              {giftMin != null && (
+                <span className="mt-1 flex items-center gap-2 text-[13px] text-muted lg:text-sm">
+                  <GiftIcon size={16} className="text-gold" />
+                  Free gift when you order {giftMin} or more pairs
+                </span>
+              )}
             </div>
             <div className="h-px bg-hair" />
             <div className="flex flex-col gap-3">

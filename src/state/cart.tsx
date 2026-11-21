@@ -30,6 +30,9 @@ type CartCtx = {
   bump: number;
   /** Increments once when the free gift unlocks (drives confetti). */
   burst: number;
+  /** The most recent add, for the "Added to bag" toast. */
+  lastAdded: { n: number; productId: string; colour: number; size: number; qty: number } | null;
+  dismissAdded: () => void;
 
   customer: CustomerDetails;
   setCustomer: (c: CustomerDetails) => void;
@@ -67,6 +70,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [quickId, setQuickId] = useState<string | null>(null);
   const [bump, setBump] = useState(0);
   const [burst, setBurst] = useState(0);
+  const [lastAdded, setLastAdded] = useState<CartCtx["lastAdded"]>(null);
   const celebrated = useRef(false);
   const loaded = useRef(false);
 
@@ -115,6 +119,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         return next;
       });
       setBump((b) => b + 1);
+      setLastAdded((prev) => ({ n: (prev?.n ?? 0) + 1, productId, colour, size, qty }));
     },
     [giftMin],
   );
@@ -131,6 +136,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       cartOpen,
       openCart: () => {
         setQuickId(null);
+        setLastAdded(null);
         setCartOpen(true);
       },
       closeCart: () => setCartOpen(false),
@@ -139,13 +145,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       closeQuick: () => setQuickId(null),
       bump,
       burst,
+      lastAdded,
+      dismissAdded: () => setLastAdded(null),
       customer,
       setCustomer: (c) => {
         setCustomerState(c);
         write(FORM_KEY, c);
       },
     }),
-    [lines, count, subtotal, fullTotal, add, cartOpen, quickId, bump, burst, customer],
+    [lines, count, subtotal, fullTotal, add, cartOpen, quickId, bump, burst, lastAdded, customer],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
