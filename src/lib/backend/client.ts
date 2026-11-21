@@ -120,6 +120,20 @@ export async function adminSignIn(email: string, password: string): Promise<Admi
   return s;
 }
 
+/** Changes the signed-in admin's password after re-checking the current one. */
+export async function adminChangePassword(current: string, next: string): Promise<void> {
+  const sb = browserClient();
+  const { data } = await sb.auth.getSession();
+  const email = data.session?.user.email;
+  if (!email) throw new Error("Please sign in again.");
+  if (next.length < 8) throw new Error("Use at least 8 characters for the new password.");
+  if (next === current) throw new Error("The new password is the same as the current one.");
+  const check = await sb.auth.signInWithPassword({ email, password: current });
+  if (check.error) throw new Error("Your current password isn't right.");
+  const { error } = await sb.auth.updateUser({ password: next });
+  if (error) throw new Error(/weak|short|leaked|pwned/i.test(error.message) ? "That password is too easy to guess. Try a longer one." : error.message);
+}
+
 export async function adminSignOut() {
   if (hasSupabase) await browserClient().auth.signOut();
 }

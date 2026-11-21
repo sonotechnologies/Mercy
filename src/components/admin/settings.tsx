@@ -1,16 +1,98 @@
 "use client";
 
 import { useState } from "react";
+import { adminChangePassword } from "@/lib/backend/client";
 import { normalisePhone } from "@/lib/format";
 import type { HeroVariant, Settings } from "@/lib/types";
 import { useStore } from "@/state/store";
-import { card, ghostBtn, hint, input, labelCls, SaveBar, Toggle } from "./ui";
+import { CheckIcon } from "../icons";
+import { card, ghostBtn, hint, input, labelCls, primaryBtn, SaveBar, Toggle } from "./ui";
 
 const HEROES: { v: HeroVariant; label: string; hint: string }[] = [
   { v: "a", label: "Shelf wall", hint: "Big shop photo with the headline over a cream fade" },
   { v: "b", label: "Lineup card", hint: "Headline beside a framed photo of the H-slide lineup" },
   { v: "c", label: "Arched row", hint: "Centred headline over a row of arched photos" },
 ];
+
+function ChangePassword() {
+  const [current, setCurrent] = useState("");
+  const [next, setNext] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [show, setShow] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState(false);
+
+  const submit = async () => {
+    setError(null);
+    setDone(false);
+    if (!current || !next) return setError("Fill in your current and new password.");
+    if (next.length < 8) return setError("Use at least 8 characters for the new password.");
+    if (next !== confirm) return setError("The new passwords don't match.");
+    setBusy(true);
+    try {
+      await adminChangePassword(current, next);
+      setDone(true);
+      setCurrent("");
+      setNext("");
+      setConfirm("");
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const type = show ? "text" : "password";
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        void submit();
+      }}
+      className={`${card} flex max-w-[680px] flex-col gap-4 p-5`}
+    >
+      <h2 className={h2}>Account</h2>
+      <p className="-mt-2 text-sm text-muted">Change the password you use to sign in to this admin.</p>
+      {/* Lets password managers attach the new password to the right account. */}
+      <input type="text" name="username" autoComplete="username" value="" readOnly hidden />
+      <label className={labelCls}>
+        Current password
+        <input type={type} value={current} onChange={(e) => setCurrent(e.target.value)} autoComplete="current-password" className={input} />
+      </label>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className={labelCls}>
+          New password
+          <input type={type} value={next} onChange={(e) => setNext(e.target.value)} autoComplete="new-password" minLength={8} className={input} />
+          <span className={hint}>At least 8 characters.</span>
+        </label>
+        <label className={labelCls}>
+          Repeat new password
+          <input type={type} value={confirm} onChange={(e) => setConfirm(e.target.value)} autoComplete="new-password" className={input} />
+        </label>
+      </div>
+      <Toggle checked={show} onChange={setShow} accent="accent-cocoa">
+        Show passwords
+      </Toggle>
+      {error && (
+        <span className="text-[13px] text-mercy" role="alert">
+          {error}
+        </span>
+      )}
+      <div className="flex flex-wrap items-center gap-2.5">
+        <button type="submit" disabled={busy} className={primaryBtn}>
+          {busy ? "Changing…" : "Change password"}
+        </button>
+        {done && (
+          <span className="flex items-center gap-1 text-[13px] text-leaf" role="status">
+            <CheckIcon size={16} />
+            Password changed. Use it next time you sign in.
+          </span>
+        )}
+      </div>
+    </form>
+  );
+}
 
 const section = "flex flex-col gap-4 border-t border-gold/30 pt-5 first:border-0 first:pt-0";
 const h2 = "font-serif text-2xl font-semibold";
@@ -116,6 +198,16 @@ export function SettingsTab() {
         </div>
         <SaveBar busy={busy} saved={saved} error={error} onSave={() => void save()} label="Save settings" />
       </div>
+      {mode === "supabase" ? (
+        <ChangePassword />
+      ) : (
+        <div className={`${card} flex max-w-[680px] flex-col gap-1.5 p-5 text-sm`}>
+          <h2 className={h2}>Account</h2>
+          <p className="text-muted">
+            Demo mode uses a shared passcode. Once Supabase is connected, you sign in with your email and can change your password here.
+          </p>
+        </div>
+      )}
       {mode === "local" && (
         <div className={`${card} flex max-w-[680px] flex-col gap-2 p-5`}>
           <span className="text-sm font-semibold">Reset demo</span>
