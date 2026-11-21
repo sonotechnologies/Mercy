@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import type { CartLine, Product } from "@/lib/types";
+import type { CartLine, Order, Product } from "@/lib/types";
 import type { CustomerDetails } from "@/lib/whatsapp";
 import { useSale } from "./sale";
 import { useStore } from "./store";
@@ -36,6 +36,11 @@ type CartCtx = {
 
   customer: CustomerDetails;
   setCustomer: (c: CustomerDetails) => void;
+
+  /** The order just placed (shows the confirmation screen). */
+  placedOrder: { order: Order; message: string; offline: boolean } | null;
+  setPlacedOrder: (p: { order: Order; message: string; offline: boolean }) => void;
+  clearPlacedOrder: () => void;
 };
 
 const Ctx = createContext<CartCtx | null>(null);
@@ -43,7 +48,7 @@ const CART_KEY = "mf.cart";
 const FORM_KEY = "mf.checkout";
 const GIFT_KEY = "mf.giftCelebrated";
 
-const EMPTY_CUSTOMER: CustomerDetails = { name: "", phone: "", address: "", city: "", state: "Lagos", note: "" };
+const EMPTY_CUSTOMER: CustomerDetails = { name: "", phone: "", fulfilment: "pickup", address: "", city: "", state: "Lagos", note: "" };
 
 function read<T>(key: string, fallback: T): T {
   try {
@@ -71,6 +76,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [bump, setBump] = useState(0);
   const [burst, setBurst] = useState(0);
   const [lastAdded, setLastAdded] = useState<CartCtx["lastAdded"]>(null);
+  const [placedOrder, setPlacedOrder] = useState<CartCtx["placedOrder"]>(null);
   const celebrated = useRef(false);
   const loaded = useRef(false);
 
@@ -120,6 +126,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       });
       setBump((b) => b + 1);
       setLastAdded((prev) => ({ n: (prev?.n ?? 0) + 1, productId, colour, size, qty }));
+      setPlacedOrder(null);
     },
     [giftMin],
   );
@@ -152,8 +159,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         setCustomerState(c);
         write(FORM_KEY, c);
       },
+      placedOrder,
+      setPlacedOrder,
+      clearPlacedOrder: () => setPlacedOrder(null),
     }),
-    [lines, count, subtotal, fullTotal, add, cartOpen, quickId, bump, burst, lastAdded, customer],
+    [lines, count, subtotal, fullTotal, add, cartOpen, quickId, bump, burst, lastAdded, customer, placedOrder],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
