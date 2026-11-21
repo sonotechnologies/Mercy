@@ -117,6 +117,12 @@ export const SEED_SETTINGS: Settings = {
   tagline: "Walk proud, your feet deserve the best.",
   deliveryNote: "We deliver nationwide. Delivery fee is confirmed on WhatsApp.",
   heroVariant: "a",
+  madeToOrder: true,
+  productionTime: "5–7 working days",
+  fulfilment: { pickup: true, delivery: true },
+  pickupAddress: "Pickup location shared on WhatsApp",
+  pickupHours: "",
+  paymentNote: "Payment details will be confirmed on WhatsApp before production starts.",
 };
 
 export function seedData(): StoreData {

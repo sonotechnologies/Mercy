@@ -31,7 +31,7 @@ export const localDataSource: DataSource = {
       return {
         ...parsed,
         sale: { ...seed.sale, ...parsed.sale },
-        settings: { ...seed.settings, ...parsed.settings },
+        settings: { ...seed.settings, ...parsed.settings, fulfilment: { ...seed.settings.fulfilment, ...parsed.settings?.fulfilment } },
       };
     } catch {
       return null;

@@ -14,6 +14,7 @@ export type OrderLine = {
 export type CustomerDetails = {
   name: string;
   phone: string;
+  fulfilment: "pickup" | "delivery";
   address: string;
   city: string;
   state: string;
@@ -62,31 +63,47 @@ type OrderContext = {
   giftMin: number | null;
 };
 
-export function buildOrderMessage(lines: OrderLine[], customer: CustomerDetails, ctx: OrderContext): string {
-  const pairs = lines.reduce((a, l) => a + l.qty, 0);
-  const subtotal = lines.reduce((a, l) => a + l.total, 0);
+export type OrderMessageInput = {
+  ref: string;
+  lines: OrderLine[];
+  customer: CustomerDetails;
+  madeToOrder: boolean;
+  productionTime: string;
+  /** yyyy-mm-dd */
+  expectedReady: string;
+};
+
+export function buildOrderMessage(o: OrderMessageInput, ctx: OrderContext): string {
+  const pairs = o.lines.reduce((a, l) => a + l.qty, 0);
+  const subtotal = o.lines.reduce((a, l) => a + l.total, 0);
+  const c = o.customer;
   const out: string[] = [];
-  out.push("Hello Mercy Footwears 👋 I'd like to order:", "", itemLines(lines), "");
+  out.push(`Hello Mercy Footwears 👋 I'd like to order (Order ${o.ref}):`, "", itemLines(o.lines), "");
 
   const disc = ctx.status === "live" ? ` (${ctx.sale.discountPercent}% sale discount applied)` : "";
   out.push(`Subtotal: ${naira(subtotal)}${disc}`);
-
   if (ctx.giftMin != null) {
     const left = ctx.giftMin - pairs;
     out.push(left <= 0 ? "🎁 Free gift: yes, unlocked" : `🎁 Free gift: not yet (add ${left} more pair${left > 1 ? "s" : ""})`);
   }
-  if (ctx.status === "live" && ctx.sale.deliveryStarts) {
-    out.push(`🚚 Delivery starts ${shortDate(ctx.sale.deliveryStarts)}`);
+  if (o.madeToOrder) {
+    out.push(`🧵 Made to order · ready in ${o.productionTime} (around ${readyLabel(o.expectedReady)})`);
+    if (ctx.status === "live" && ctx.sale.deliveryStarts) out.push(`Sale orders go into production from ${shortDate(ctx.sale.deliveryStarts)}`);
   }
 
-  out.push("", `Name: ${customer.name.trim()}`, `Phone: ${customer.phone.trim()}`);
-  const place = [customer.address.trim(), customer.city.trim(), customer.state.trim()].filter(Boolean).join(", ");
-  out.push(`Delivery: ${place}`);
-  if (customer.note.trim()) out.push(`Note: ${customer.note.trim()}`);
+  out.push("", `Name: ${c.name.trim()}`, `Phone: ${c.phone.trim()}`);
+  if (c.fulfilment === "pickup") out.push("Fulfilment: Pickup");
+  else out.push(`Fulfilment: Delivery to ${[c.address.trim(), c.city.trim(), c.state.trim()].filter(Boolean).join(", ")}`);
+  if (c.note.trim()) out.push(`Note: ${c.note.trim()}`);
   return out.join("\n");
 }
 
-export function buildSingleItemMessage(line: OrderLine, ctx: OrderContext): string {
+function readyLabel(iso: string): string {
+  const d = new Date(iso + "T12:00:00+01:00");
+  return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "Africa/Lagos" });
+}
+
+export function buildSingleItemMessage(line: OrderLine, ctx: OrderContext, extra?: string): string {
   const disc = ctx.status === "live" ? ` (${ctx.sale.discountPercent}% sale discount applied)` : "";
   return [
     "Hello Mercy Footwears 👋 I'd like to order:",
@@ -94,8 +111,9 @@ export function buildSingleItemMessage(line: OrderLine, ctx: OrderContext): stri
     itemLines([line]),
     "",
     `Subtotal: ${naira(line.total)}${disc}`,
+    ...(extra ? [extra] : []),
     "",
-    "Is it available? Please let me know the delivery fee to my location.",
+    "Please confirm my order and how to pay. Thank you!",
   ].join("\n");
 }
 

@@ -6,6 +6,7 @@ import { QuickAdd } from "@/components/quick-add";
 import { CartProvider } from "@/state/cart";
 import { SaleProvider } from "@/state/sale";
 import { StoreProvider } from "@/state/store";
+import { loadStoreData } from "@/lib/backend/server";
 import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
@@ -53,17 +54,21 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-/** Re-render static pages hourly so the server-rendered sale state stays current. */
-export const revalidate = 3600;
+/**
+ * Re-render pages every 5 minutes so the server-rendered sale state and catalogue stay
+ * current. Admin saves also trigger an immediate refresh (see /api/revalidate).
+ */
+export const revalidate = 300;
 
 /** Server render time (build or hourly revalidation), outside render for purity. */
 const renderTime = () => new Date().getTime();
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const initial = await loadStoreData();
   return (
     <html lang="en" className={`${cormorant.variable} ${dmSans.variable}`}>
       <body>
-        <StoreProvider>
+        <StoreProvider initial={initial}>
           <SaleProvider renderedAt={renderTime()}>
             <CartProvider>
               {children}
