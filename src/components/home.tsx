@@ -3,7 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState } from "react";
-import { INSTAGRAM_TILES, STYLE_TILES } from "@/lib/seed";
+import { naira } from "@/lib/format";
+import { hasSalePrice } from "@/lib/sale";
+import { INSTAGRAM_TILES, SALE_BANNER, STYLE_TILES } from "@/lib/seed";
 import { buildChatMessage, buildNotifyMessage, openWhatsApp } from "@/lib/whatsapp";
 import { useSale } from "@/state/sale";
 import { useStore } from "@/state/store";
@@ -98,22 +100,25 @@ function HeroC() {
       <Tagline center />
       <HeroButtons className="order-last mt-[18px] w-full lg:order-none lg:mt-3.5 lg:w-auto" />
       <div className="mt-5 grid w-full grid-cols-[1fr_1.15fr_1fr] items-end gap-2 lg:mt-9 lg:grid-cols-5 lg:gap-4">
-        <Arch src="/products/mf-13.jpg" h="h-[200px] lg:h-[300px]" focus="50% 70%" />
-        <Arch src="/products/mf-04.jpg" h="h-[360px]" focus="50% 60%" className="hidden lg:block" />
-        <Arch src="/products/mf-16.jpg" h="h-[260px] lg:h-[420px]" focus="50% 55%" framed priority />
-        <Arch src="/products/mf-11.jpg" h="h-[360px]" focus="50% 55%" className="hidden lg:block" />
-        <Arch src="/products/mf-04.jpg" h="h-[200px] lg:hidden" focus="50% 60%" />
-        <Arch src="/products/mf-18.jpg" h="h-[300px]" focus="50% 60%" className="hidden lg:block" />
+        <Arch src="/products/catalog/mustard-bow-slide-1.jpg" h="h-[200px] lg:h-[300px]" focus="50% 40%" />
+        <Arch src="/products/catalog/buckle-h-slide-1.jpg" h="h-[360px]" focus="50% 50%" className="hidden lg:block" />
+        <Arch src="/products/catalog/bow-slide-2.jpg" h="h-[260px] lg:h-[420px]" focus="50% 50%" framed priority />
+        <Arch src="/products/catalog/clasp-slide-5.jpg" h="h-[360px]" focus="50% 50%" className="hidden lg:block" />
+        <Arch src="/products/catalog/pleated-knot-slide-1.jpg" h="h-[200px] lg:hidden" focus="50% 50%" />
+        <Arch src="/products/catalog/pleated-knot-slide-1.jpg" h="h-[300px]" focus="50% 50%" className="hidden lg:block" />
       </div>
     </section>
   );
 }
 
 function SaleCard() {
-  const { status, sale } = useSale();
-  const { data } = useStore();
+  const { status, sale, target, priceOf } = useSale();
+  const { data, products } = useStore();
   if (status !== "live" && status !== "upcoming") return null;
   const live = status === "live";
+  const onSale = products.filter((p) => p.inStock && hasSalePrice(p));
+  const from = onSale.length ? Math.min(...onSale.map(priceOf)) : 0;
+  const maxSave = onSale.length ? Math.max(...onSale.map((p) => p.price - p.salePrice!)) : 0;
   const gift = `Free gift on orders above ${Math.max(0, sale.freeGiftMinPairs - 1)} pairs 🎁`;
   const cta = live ? (
     <Link href="/shop?sale=1" className="grid h-[46px] place-items-center rounded-full bg-mercy px-7 text-[15px] font-semibold text-cream hover:bg-[#8f1921] lg:h-12 lg:px-[30px]">
@@ -131,23 +136,31 @@ function SaleCard() {
   );
   return (
     <section id="sale" className="scroll-mt-28 px-5 pt-7 lg:mx-auto lg:max-w-[1240px] lg:px-12 lg:pt-16">
-      <div className="flex flex-col items-center gap-1.5 rounded-2xl border border-gold/40 bg-sand px-[18px] py-6 text-center lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:items-center lg:gap-10 lg:px-12 lg:py-9 lg:text-left">
-        <div className="flex flex-col items-center gap-1.5 lg:items-start">
+      <div className="overflow-hidden rounded-2xl border border-gold/40 bg-sand lg:grid lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+        {SALE_BANNER && (
+          <div className="relative aspect-[16/10] lg:order-2 lg:aspect-auto lg:min-h-[340px]">
+            <Image src={SALE_BANNER.image} alt="A selection of Mercy slides on sale" fill sizes="(min-width:1024px) 560px, 100vw" className="object-cover" style={{ objectPosition: "50% 45%" }} />
+            {live && from > 0 && (
+              <span className="tabular absolute bottom-3 left-3 rounded-full bg-cream/95 px-3.5 py-1.5 text-[13px] font-semibold text-cocoa shadow-soft">
+                Sale picks from {naira(from)}
+              </span>
+            )}
+          </div>
+        )}
+        <div className="flex flex-col items-center gap-2 px-[18px] py-6 text-center lg:items-start lg:justify-center lg:gap-3 lg:px-12 lg:py-10 lg:text-left">
           <span className="text-[11px] font-semibold tracking-[.18em] text-ochre lg:text-xs">{sale.title.toUpperCase()}</span>
-          <span className="font-serif text-[30px] leading-[1.1] font-semibold lg:text-[40px] lg:leading-[1.05]">{sale.discountPercent}% off every pair</span>
-          <span className="text-sm text-muted">{live ? "Ends in" : "Starts in"}</span>
-        </div>
-        <div className="mt-2 mb-1 lg:m-0">
-          <div className="lg:hidden">
-            <BigCountdown />
-          </div>
-          <div className="hidden lg:block">
-            <BigCountdown size="lg" />
-          </div>
-        </div>
-        <div className="flex flex-col items-center gap-2.5 lg:items-end lg:gap-3 lg:text-right">
-          <span className="mt-1 text-[15px] lg:mt-0 lg:text-base">{gift}</span>
-          {cta}
+          <h2 className="m-0 font-serif text-[30px] leading-[1.1] font-semibold lg:text-[44px] lg:leading-[1.05]">
+            {live ? "Prices slashed on selected styles" : "Our sale is coming soon"}
+          </h2>
+          {live && maxSave > 0 && <p className="m-0 text-[15px] text-muted lg:text-base">Save up to {naira(maxSave)} a pair, while the sale lasts.</p>}
+          {target != null && (
+            <div className="mt-1 flex flex-col items-center gap-1 lg:items-start">
+              <span className="text-sm text-muted">{live ? "Ends in" : "Starts in"}</span>
+              <BigCountdown />
+            </div>
+          )}
+          <span className="mt-1 text-[15px] lg:text-base">{gift}</span>
+          <div className="mt-1">{cta}</div>
         </div>
       </div>
     </section>
@@ -168,14 +181,14 @@ function BestSellers() {
     <>
       <section className="pt-10 lg:mx-auto lg:max-w-[1240px] lg:px-12 lg:pt-20">
         <h2 className={`${H2} px-5 lg:px-0`}>Shop by style</h2>
-        <div className="no-scrollbar flex gap-3.5 overflow-x-auto px-5 pt-4 pb-1 lg:grid lg:grid-cols-6 lg:gap-6 lg:overflow-visible lg:px-0 lg:pt-6">
-          {STYLE_TILES.map((s) => (
+        <div className="no-scrollbar flex gap-3.5 overflow-x-auto px-5 pt-4 pb-1 lg:flex-wrap lg:justify-center lg:gap-x-6 lg:gap-y-8 lg:overflow-visible lg:px-0 lg:pt-6">
+          {STYLE_TILES.filter((t) => products.some((p) => p.style === t.name && p.inStock)).map((s) => (
             <button
               key={s.name}
               type="button"
               onClick={() => pick(s.name)}
               aria-pressed={style === s.name}
-              className="group flex flex-none flex-col items-center gap-2 pt-[3px] text-[13px] font-medium lg:gap-3 lg:text-[15px]"
+              className="group flex flex-none flex-col items-center gap-2 pt-[3px] text-[13px] font-medium lg:w-[calc((100%-120px)/6)] lg:gap-3 lg:text-[15px]"
             >
               <span
                 className="relative block size-[76px] overflow-hidden rounded-full border-[3px] border-cream bg-sand lg:aspect-square lg:size-auto lg:w-full lg:max-w-[150px] lg:border-4"

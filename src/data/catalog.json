@@ -1,0 +1,1904 @@
+{
+ "importedAt": "2026-11-21",
+ "banner": {
+  "image": "/products/catalog/banner-assorted-sale-picks.jpg",
+  "caption": "Sale picks from ₦6,500"
+ },
+ "products": [
+  {
+   "id": "buckle-h-slide",
+   "name": "Buckle H-Slide",
+   "slug": "buckle-h-slide",
+   "gender": "women",
+   "style": "H-Slides",
+   "price": 8000,
+   "salePrice": 6500,
+   "colours": [
+    {
+     "name": "Mustard",
+     "hex": "#E2B523",
+     "image": "/products/catalog/buckle-h-slide-1.jpg"
+    },
+    {
+     "name": "Olive",
+     "hex": "#6E6B45",
+     "image": "/products/catalog/buckle-h-slide-2.jpg"
+    },
+    {
+     "name": "Tan",
+     "hex": "#B9804F",
+     "image": "/products/catalog/buckle-h-slide-3.jpg"
+    }
+   ],
+   "sizes": [
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": true,
+   "images": [
+    "/products/catalog/buckle-h-slide-1.jpg",
+    "/products/catalog/buckle-h-slide-2.jpg",
+    "/products/catalog/buckle-h-slide-3.jpg"
+   ],
+   "description": "A clean, flat H-strap slide that goes with everything, from jeans to Sunday wears. Soft footbed, sturdy sole, easy slip-on fit.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795219200000
+  },
+  {
+   "id": "bow-slide",
+   "name": "Bow Slide",
+   "slug": "bow-slide",
+   "gender": "women",
+   "style": "Bow & Knot",
+   "price": 8000,
+   "salePrice": 6500,
+   "colours": [
+    {
+     "name": "Tan",
+     "hex": "#B9804F",
+     "image": "/products/catalog/bow-slide-1.jpg"
+    },
+    {
+     "name": "Taupe",
+     "hex": "#9C8B7A",
+     "image": "/products/catalog/bow-slide-2.jpg"
+    }
+   ],
+   "sizes": [
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": true,
+   "images": [
+    "/products/catalog/bow-slide-1.jpg",
+    "/products/catalog/bow-slide-2.jpg"
+   ],
+   "description": "A soft bow or knot on a comfortable flat sole. Dressy enough for owambe, easy enough for a market run.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795219140000
+  },
+  {
+   "id": "clasp-slide",
+   "name": "Clasp Slide",
+   "slug": "clasp-slide",
+   "gender": "women",
+   "style": "Buckle",
+   "price": 8000,
+   "salePrice": 6500,
+   "colours": [
+    {
+     "name": "Black",
+     "hex": "#1F1B19",
+     "image": "/products/catalog/clasp-slide-1.jpg"
+    },
+    {
+     "name": "Cream/Tan",
+     "hex": "#EDE3CF",
+     "image": "/products/catalog/clasp-slide-3.jpg"
+    },
+    {
+     "name": "Tan",
+     "hex": "#B9804F",
+     "image": "/products/catalog/clasp-slide-5.jpg"
+    },
+    {
+     "name": "White",
+     "hex": "#F4F1EA",
+     "image": "/products/catalog/clasp-slide-5.jpg"
+    },
+    {
+     "name": "Blue Suede",
+     "hex": "#8FB4D9",
+     "image": "/products/catalog/clasp-slide-4.jpg"
+    }
+   ],
+   "sizes": [
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": true,
+   "images": [
+    "/products/catalog/clasp-slide-1.jpg",
+    "/products/catalog/clasp-slide-2.jpg",
+    "/products/catalog/clasp-slide-3.jpg",
+    "/products/catalog/clasp-slide-4.jpg",
+    "/products/catalog/clasp-slide-5.jpg"
+   ],
+   "description": "A structured strap finished with a polished buckle. Smart, sturdy and comfortable all day.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795219080000
+  },
+  {
+   "id": "knotted-strappy-slide",
+   "name": "Knotted Strappy Slide",
+   "slug": "knotted-strappy-slide",
+   "gender": "women",
+   "style": "Strappy",
+   "price": 8000,
+   "salePrice": 6500,
+   "colours": [
+    {
+     "name": "Beige",
+     "hex": "#D8C3A5",
+     "image": "/products/catalog/knotted-strappy-slide-1.jpg"
+    },
+    {
+     "name": "Sage",
+     "hex": "#B5C3A3",
+     "image": "/products/catalog/knotted-strappy-slide-2.jpg"
+    },
+    {
+     "name": "Ivory",
+     "hex": "#ECE5D6",
+     "image": "/products/catalog/knotted-strappy-slide-3.jpg"
+    },
+    {
+     "name": "Black",
+     "hex": "#1F1B19",
+     "image": "/products/catalog/knotted-strappy-slide-3.jpg"
+    }
+   ],
+   "sizes": [
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": true,
+   "images": [
+    "/products/catalog/knotted-strappy-slide-1.jpg",
+    "/products/catalog/knotted-strappy-slide-2.jpg",
+    "/products/catalog/knotted-strappy-slide-3.jpg"
+   ],
+   "description": "Fine straps that look delicate and hold firm. Pairs beautifully with dresses and wide-leg trousers.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795219020000
+  },
+  {
+   "id": "crystal-knot-slide",
+   "name": "Crystal Knot Slide",
+   "slug": "crystal-knot-slide",
+   "gender": "women",
+   "style": "Bow & Knot",
+   "price": 9000,
+   "salePrice": 8000,
+   "colours": [
+    {
+     "name": "Black",
+     "hex": "#1F1B19"
+    }
+   ],
+   "sizes": [
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": true,
+   "images": [
+    "/products/catalog/crystal-knot-slide-1.jpg"
+   ],
+   "description": "A soft bow or knot on a comfortable flat sole. Dressy enough for owambe, easy enough for a market run.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795218960000
+  },
+  {
+   "id": "slingback-thong-sandal",
+   "name": "Slingback Thong Sandal",
+   "slug": "slingback-thong-sandal",
+   "gender": "women",
+   "style": "Toe-Ring",
+   "price": 12000,
+   "salePrice": 10000,
+   "colours": [
+    {
+     "name": "Tan",
+     "hex": "#B9804F",
+     "image": "/products/catalog/slingback-thong-sandal-1.jpg"
+    },
+    {
+     "name": "Black",
+     "hex": "#1F1B19",
+     "image": "/products/catalog/slingback-thong-sandal-2.jpg"
+    }
+   ],
+   "sizes": [
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": true,
+   "images": [
+    "/products/catalog/slingback-thong-sandal-1.jpg",
+    "/products/catalog/slingback-thong-sandal-2.jpg"
+   ],
+   "description": "A toe-ring or thong style that keeps your foot secure without straps everywhere. Light, neat and made for long days.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795218900000
+  },
+  {
+   "id": "pleated-knot-slide",
+   "name": "Pleated Knot Slide",
+   "slug": "pleated-knot-slide",
+   "gender": "women",
+   "style": "Bow & Knot",
+   "price": 8000,
+   "salePrice": 6500,
+   "colours": [
+    {
+     "name": "Cream",
+     "hex": "#EDE3CF"
+    }
+   ],
+   "sizes": [
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": true,
+   "images": [
+    "/products/catalog/pleated-knot-slide-1.jpg"
+   ],
+   "description": "A soft bow or knot on a comfortable flat sole. Dressy enough for owambe, easy enough for a market run.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795218840000
+  },
+  {
+   "id": "mustard-bow-slide",
+   "name": "Bow & Knot Slide",
+   "slug": "mustard-bow-slide",
+   "gender": "women",
+   "style": "Bow & Knot",
+   "price": 9000,
+   "salePrice": 7500,
+   "colours": [
+    {
+     "name": "Mustard",
+     "hex": "#E2B523"
+    }
+   ],
+   "sizes": [
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": true,
+   "images": [
+    "/products/catalog/mustard-bow-slide-1.jpg"
+   ],
+   "description": "A soft bow or knot on a comfortable flat sole. Dressy enough for owambe, easy enough for a market run.",
+   "focus": "50% 40%",
+   "orderType": "made-to-order",
+   "createdAt": 1795218780000
+  },
+  {
+   "id": "classic-h-slide",
+   "name": "Classic H-Slide",
+   "slug": "classic-h-slide",
+   "gender": "women",
+   "style": "H-Slides",
+   "price": 8000,
+   "salePrice": 6500,
+   "colours": [
+    {
+     "name": "Burgundy",
+     "hex": "#6E1F2B"
+    }
+   ],
+   "sizes": [
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": true,
+   "images": [
+    "/products/catalog/classic-h-slide-1.jpg"
+   ],
+   "description": "A clean, flat H-strap slide that goes with everything, from jeans to Sunday wears. Soft footbed, sturdy sole, easy slip-on fit.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795218720000
+  },
+  {
+   "id": "knotted-thong-platform",
+   "name": "Knotted Thong Platform",
+   "slug": "knotted-thong-platform",
+   "gender": "women",
+   "style": "Platform",
+   "price": 20000,
+   "salePrice": 18000,
+   "colours": [
+    {
+     "name": "White",
+     "hex": "#F4F1EA"
+    },
+    {
+     "name": "Lilac",
+     "hex": "#C3A6D3"
+    },
+    {
+     "name": "Pink",
+     "hex": "#E3A3B5"
+    },
+    {
+     "name": "Plum",
+     "hex": "#7A2E55"
+    },
+    {
+     "name": "Black",
+     "hex": "#1F1B19"
+    },
+    {
+     "name": "Orange",
+     "hex": "#E07A2E"
+    },
+    {
+     "name": "Leopard",
+     "hex": "#B98A4E"
+    }
+   ],
+   "sizes": [
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": true,
+   "isBestseller": true,
+   "images": [
+    "/products/catalog/knotted-thong-platform-1.jpg"
+   ],
+   "description": "A raised sole that adds a little height without the wobble. Comfortable for long days out.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795218660000
+  },
+  {
+   "id": "penny-loafer",
+   "name": "Penny Loafer",
+   "slug": "penny-loafer",
+   "gender": "men-unisex",
+   "style": "Loafers",
+   "price": 40000,
+   "salePrice": 37500,
+   "colours": [
+    {
+     "name": "Black/Cream",
+     "hex": "#1F1B19",
+     "image": "/products/catalog/penny-loafer-1.jpg"
+    },
+    {
+     "name": "Dark Brown",
+     "hex": "#3E2619",
+     "image": "/products/catalog/penny-loafer-2.jpg"
+    },
+    {
+     "name": "Black",
+     "hex": "#1F1B19",
+     "image": "/products/catalog/penny-loafer-3.jpg"
+    }
+   ],
+   "sizes": [
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": true,
+   "isBestseller": true,
+   "images": [
+    "/products/catalog/penny-loafer-1.jpg",
+    "/products/catalog/penny-loafer-2.jpg",
+    "/products/catalog/penny-loafer-3.jpg"
+   ],
+   "description": "A classic penny loafer with a clean finish. Smart for work, sharp for occasions.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795218600000
+  },
+  {
+   "id": "mens-cross-slide",
+   "name": "Cross Slide",
+   "slug": "mens-cross-slide",
+   "gender": "men-unisex",
+   "style": "Cross-Strap",
+   "price": 12000,
+   "salePrice": 10500,
+   "colours": [
+    {
+     "name": "Tan/White/Burgundy",
+     "hex": "#B9804F",
+     "image": "/products/catalog/mens-cross-slide-1.jpg"
+    },
+    {
+     "name": "Tan/Brown/White",
+     "hex": "#B9804F",
+     "image": "/products/catalog/mens-cross-slide-2.jpg"
+    }
+   ],
+   "sizes": [
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": true,
+   "images": [
+    "/products/catalog/mens-cross-slide-1.jpg",
+    "/products/catalog/mens-cross-slide-2.jpg"
+   ],
+   "description": "Crossed straps for a secure fit and a clean look, on a cushioned sole.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795218540000
+  },
+  {
+   "id": "double-strap-cork-slide",
+   "name": "Double-Strap Cork Slide",
+   "slug": "double-strap-cork-slide",
+   "gender": "men-unisex",
+   "style": "Cork",
+   "price": 25000,
+   "salePrice": 23000,
+   "colours": [
+    {
+     "name": "Black",
+     "hex": "#1F1B19",
+     "image": "/products/catalog/double-strap-cork-slide-1.jpg"
+    },
+    {
+     "name": "Brown",
+     "hex": "#6B4127",
+     "image": "/products/catalog/double-strap-cork-slide-2.jpg"
+    }
+   ],
+   "sizes": [
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": true,
+   "images": [
+    "/products/catalog/double-strap-cork-slide-1.jpg",
+    "/products/catalog/double-strap-cork-slide-2.jpg"
+   ],
+   "description": "A contoured cork footbed that moulds to your foot, with sturdy straps for everyday wear.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795218480000
+  },
+  {
+   "id": "mens-cut-out-slide",
+   "name": "Cut-Out Slide",
+   "slug": "mens-cut-out-slide",
+   "gender": "men-unisex",
+   "style": "Slides",
+   "price": 15000,
+   "salePrice": 13500,
+   "colours": [
+    {
+     "name": "Black",
+     "hex": "#1F1B19",
+     "image": "/products/catalog/mens-cut-out-slide-1.jpg"
+    },
+    {
+     "name": "Brown",
+     "hex": "#6B4127",
+     "image": "/products/catalog/mens-cut-out-slide-2.jpg"
+    }
+   ],
+   "sizes": [
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": true,
+   "isBestseller": true,
+   "images": [
+    "/products/catalog/mens-cut-out-slide-1.jpg",
+    "/products/catalog/mens-cut-out-slide-2.jpg"
+   ],
+   "description": "An easy slip-on slide with a soft footbed. Simple, smart and made for every day.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795218420000
+  },
+  {
+   "id": "buckle-mule",
+   "name": "Buckle Mule",
+   "slug": "buckle-mule",
+   "gender": "men-unisex",
+   "style": "Mules",
+   "price": 30000,
+   "salePrice": 27000,
+   "colours": [
+    {
+     "name": "Black",
+     "hex": "#1F1B19"
+    }
+   ],
+   "sizes": [
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": true,
+   "images": [
+    "/products/catalog/buckle-mule-1.jpg"
+   ],
+   "description": "A closed-toe mule you can slip on and go. Polished enough for the office, easy enough for the weekend.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795218360000
+  },
+  {
+   "id": "mini-platform-thong",
+   "name": "Mini Platform Knot Thong",
+   "slug": "mini-platform-thong",
+   "gender": "women",
+   "style": "Platform",
+   "price": 12000,
+   "salePrice": 10500,
+   "colours": [
+    {
+     "name": "Brown",
+     "hex": "#6B4127"
+    }
+   ],
+   "sizes": [
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": false,
+   "images": [
+    "/products/catalog/mini-platform-thong-1.jpg"
+   ],
+   "description": "A raised sole that adds a little height without the wobble. Comfortable for long days out.",
+   "focus": "50% 40%",
+   "orderType": "made-to-order",
+   "createdAt": 1795218300000
+  },
+  {
+   "id": "pointed-strappy-thong",
+   "name": "Pointed Strappy Thong",
+   "slug": "pointed-strappy-thong",
+   "gender": "women",
+   "style": "Strappy",
+   "price": 10000,
+   "salePrice": 8500,
+   "colours": [
+    {
+     "name": "Rose",
+     "hex": "#D89AA5"
+    }
+   ],
+   "sizes": [
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": false,
+   "images": [
+    "/products/catalog/pointed-strappy-thong-1.jpg"
+   ],
+   "description": "Fine straps that look delicate and hold firm. Pairs beautifully with dresses and wide-leg trousers.",
+   "focus": "50% 45%",
+   "orderType": "made-to-order",
+   "createdAt": 1795218240000
+  },
+  {
+   "id": "quilted-slide",
+   "name": "Quilted Slide",
+   "slug": "quilted-slide",
+   "gender": "women",
+   "style": "Slides",
+   "price": 8000,
+   "salePrice": 6500,
+   "colours": [
+    {
+     "name": "Red",
+     "hex": "#C8232F"
+    },
+    {
+     "name": "Orange",
+     "hex": "#E07A2E"
+    }
+   ],
+   "sizes": [
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": false,
+   "images": [
+    "/products/catalog/quilted-slide-1.jpg"
+   ],
+   "description": "An easy slip-on slide with a soft footbed. Simple, smart and made for every day.",
+   "focus": "50% 40%",
+   "orderType": "made-to-order",
+   "createdAt": 1795218180000
+  },
+  {
+   "id": "medallion-slide",
+   "name": "Medallion Slide",
+   "slug": "medallion-slide",
+   "gender": "women",
+   "style": "Buckle",
+   "price": 8000,
+   "salePrice": 6500,
+   "colours": [
+    {
+     "name": "Pink",
+     "hex": "#E3A3B5"
+    }
+   ],
+   "sizes": [
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": false,
+   "images": [
+    "/products/catalog/medallion-slide-1.jpg"
+   ],
+   "description": "A structured strap finished with a polished buckle. Smart, sturdy and comfortable all day.",
+   "focus": "50% 45%",
+   "orderType": "made-to-order",
+   "createdAt": 1795218120000
+  },
+  {
+   "id": "denim-buckle-slide",
+   "name": "Denim Buckle Slide",
+   "slug": "denim-buckle-slide",
+   "gender": "women",
+   "style": "Buckle",
+   "price": 8000,
+   "salePrice": 6500,
+   "colours": [
+    {
+     "name": "Navy",
+     "hex": "#24304F"
+    }
+   ],
+   "sizes": [
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": false,
+   "images": [
+    "/products/catalog/denim-buckle-slide-1.jpg"
+   ],
+   "description": "A structured strap finished with a polished buckle. Smart, sturdy and comfortable all day.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795218060000
+  },
+  {
+   "id": "suede-cross-platform",
+   "name": "Suede Cross Platform",
+   "slug": "suede-cross-platform",
+   "gender": "women",
+   "style": "Cross-Strap",
+   "price": 25000,
+   "salePrice": 23000,
+   "colours": [
+    {
+     "name": "Black",
+     "hex": "#1F1B19"
+    }
+   ],
+   "sizes": [
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": false,
+   "images": [
+    "/products/catalog/suede-cross-platform-1.jpg"
+   ],
+   "description": "Crossed straps for a secure fit and a clean look, on a cushioned sole.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795218000000
+  },
+  {
+   "id": "woven-cross-slide",
+   "name": "Woven Cross Slide",
+   "slug": "woven-cross-slide",
+   "gender": "women",
+   "style": "Cross-Strap",
+   "price": 8000,
+   "salePrice": 6500,
+   "colours": [
+    {
+     "name": "Brown",
+     "hex": "#6B4127",
+     "image": "/products/catalog/woven-cross-slide-1.jpg"
+    },
+    {
+     "name": "Burgundy",
+     "hex": "#6E1F2B",
+     "image": "/products/catalog/woven-cross-slide-3.jpg"
+    }
+   ],
+   "sizes": [
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": false,
+   "images": [
+    "/products/catalog/woven-cross-slide-1.jpg",
+    "/products/catalog/woven-cross-slide-2.jpg",
+    "/products/catalog/woven-cross-slide-3.jpg"
+   ],
+   "description": "Crossed straps for a secure fit and a clean look, on a cushioned sole.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795217940000
+  },
+  {
+   "id": "buckle-platform-slide",
+   "name": "Buckle Platform Slide",
+   "slug": "buckle-platform-slide",
+   "gender": "men-unisex",
+   "style": "Buckle",
+   "price": 20000,
+   "salePrice": 18000,
+   "colours": [
+    {
+     "name": "Brown",
+     "hex": "#6B4127"
+    }
+   ],
+   "sizes": [
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": false,
+   "images": [
+    "/products/catalog/buckle-platform-slide-1.jpg"
+   ],
+   "description": "A structured strap finished with a polished buckle. Smart, sturdy and comfortable all day.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795217880000
+  },
+  {
+   "id": "two-tone-h-slide",
+   "name": "Two-Tone H-Slide",
+   "slug": "two-tone-h-slide",
+   "gender": "men-unisex",
+   "style": "H-Slides",
+   "price": 15000,
+   "salePrice": 13500,
+   "colours": [
+    {
+     "name": "Black/Tan",
+     "hex": "#1F1B19"
+    }
+   ],
+   "sizes": [
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": false,
+   "images": [
+    "/products/catalog/two-tone-h-slide-1.jpg"
+   ],
+   "description": "A clean, flat H-strap slide that goes with everything, from jeans to Sunday wears. Soft footbed, sturdy sole, easy slip-on fit.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795217820000
+  },
+  {
+   "id": "cut-out-bow-slide",
+   "name": "Cut-Out Bow Slide",
+   "slug": "cut-out-bow-slide",
+   "gender": "women",
+   "style": "Slides",
+   "price": 8000,
+   "salePrice": 6500,
+   "colours": [
+    {
+     "name": "Tan",
+     "hex": "#B9804F"
+    }
+   ],
+   "sizes": [
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": false,
+   "images": [
+    "/products/catalog/cut-out-bow-slide-1.jpg"
+   ],
+   "description": "An easy slip-on slide with a soft footbed. Simple, smart and made for every day.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795217640000
+  },
+  {
+   "id": "crest-cork-slide",
+   "name": "Suede Cork Slide with Crest",
+   "slug": "crest-cork-slide",
+   "gender": "men-unisex",
+   "style": "Cork",
+   "price": 25000,
+   "salePrice": 23000,
+   "colours": [
+    {
+     "name": "Black",
+     "hex": "#1F1B19"
+    }
+   ],
+   "sizes": [
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": false,
+   "images": [
+    "/products/catalog/crest-cork-slide-1.jpg"
+   ],
+   "description": "A contoured cork footbed that moulds to your foot, with sturdy straps for everyday wear.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795217460000
+  },
+  {
+   "id": "textured-h-slide",
+   "name": "Textured H-Slide",
+   "slug": "textured-h-slide",
+   "gender": "men-unisex",
+   "style": "H-Slides",
+   "price": 12000,
+   "salePrice": 10500,
+   "colours": [
+    {
+     "name": "Brown",
+     "hex": "#6B4127"
+    }
+   ],
+   "sizes": [
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": false,
+   "images": [
+    "/products/catalog/textured-h-slide-1.jpg"
+   ],
+   "description": "A clean, flat H-strap slide that goes with everything, from jeans to Sunday wears. Soft footbed, sturdy sole, easy slip-on fit.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795217340000
+  },
+  {
+   "id": "crystal-h-slide",
+   "name": "Crystal H-Slide",
+   "slug": "crystal-h-slide",
+   "gender": "women",
+   "style": "H-Slides",
+   "price": 8000,
+   "salePrice": 6500,
+   "colours": [
+    {
+     "name": "Black",
+     "hex": "#1F1B19"
+    }
+   ],
+   "sizes": [
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": true,
+   "isBestseller": false,
+   "images": [
+    "/products/catalog/crystal-h-slide-1.jpg"
+   ],
+   "description": "A clean, flat H-strap slide that goes with everything, from jeans to Sunday wears. Soft footbed, sturdy sole, easy slip-on fit.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795217280000
+  },
+  {
+   "id": "double-strap-slide",
+   "name": "Double-Strap Slide",
+   "slug": "double-strap-slide",
+   "gender": "women",
+   "style": "Strappy",
+   "price": 8000,
+   "salePrice": 6500,
+   "colours": [
+    {
+     "name": "Black",
+     "hex": "#1F1B19"
+    },
+    {
+     "name": "Brown",
+     "hex": "#6B4127"
+    },
+    {
+     "name": "Nude",
+     "hex": "#D9B48E"
+    },
+    {
+     "name": "White",
+     "hex": "#F4F1EA"
+    }
+   ],
+   "sizes": [
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": false,
+   "images": [
+    "/products/catalog/double-strap-slide-1.jpg"
+   ],
+   "description": "Fine straps that look delicate and hold firm. Pairs beautifully with dresses and wide-leg trousers.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795217160000
+  },
+  {
+   "id": "knot-thong",
+   "name": "Knot Thong",
+   "slug": "knot-thong",
+   "gender": "women",
+   "style": "Toe-Ring",
+   "price": 8000,
+   "salePrice": 6500,
+   "colours": [
+    {
+     "name": "Beige",
+     "hex": "#D8C3A5"
+    },
+    {
+     "name": "Rust",
+     "hex": "#A4502A"
+    }
+   ],
+   "sizes": [
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": false,
+   "images": [
+    "/products/catalog/knot-thong-1.jpg"
+   ],
+   "description": "A toe-ring or thong style that keeps your foot secure without straps everywhere. Light, neat and made for long days.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795217040000
+  },
+  {
+   "id": "knot-t-strap-sandal",
+   "name": "Knot T-Strap Sandal",
+   "slug": "knot-t-strap-sandal",
+   "gender": "women",
+   "style": "Toe-Ring",
+   "price": 10000,
+   "salePrice": 8500,
+   "colours": [
+    {
+     "name": "Black",
+     "hex": "#1F1B19",
+     "image": "/products/catalog/knot-t-strap-sandal-1.jpg"
+    },
+    {
+     "name": "Brown",
+     "hex": "#6B4127",
+     "image": "/products/catalog/knot-t-strap-sandal-2.jpg"
+    }
+   ],
+   "sizes": [
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": false,
+   "images": [
+    "/products/catalog/knot-t-strap-sandal-1.jpg",
+    "/products/catalog/knot-t-strap-sandal-2.jpg"
+   ],
+   "description": "A toe-ring or thong style that keeps your foot secure without straps everywhere. Light, neat and made for long days.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795216980000
+  },
+  {
+   "id": "wide-strap-slide",
+   "name": "Wide-Strap Slide",
+   "slug": "wide-strap-slide",
+   "gender": "women",
+   "style": "Slides",
+   "price": 8000,
+   "salePrice": 6500,
+   "colours": [
+    {
+     "name": "Sky Blue",
+     "hex": "#9EC3E6"
+    }
+   ],
+   "sizes": [
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": true,
+   "isBestseller": false,
+   "images": [
+    "/products/catalog/wide-strap-slide-1.jpg"
+   ],
+   "description": "An easy slip-on slide with a soft footbed. Simple, smart and made for every day.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795216920000
+  },
+  {
+   "id": "cross-comfort-slide",
+   "name": "Cross-Strap Comfort Slide",
+   "slug": "cross-comfort-slide",
+   "gender": "men-unisex",
+   "style": "Cross-Strap",
+   "price": 25000,
+   "salePrice": 23000,
+   "colours": [
+    {
+     "name": "Black/Cream",
+     "hex": "#1F1B19"
+    }
+   ],
+   "sizes": [
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": false,
+   "images": [
+    "/products/catalog/cross-comfort-slide-1.jpg"
+   ],
+   "description": "Crossed straps for a secure fit and a clean look, on a cushioned sole.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795216800000
+  },
+  {
+   "id": "tab-slide",
+   "name": "Tab Slide",
+   "slug": "tab-slide",
+   "gender": "women",
+   "style": "Slides",
+   "price": 8000,
+   "salePrice": 6500,
+   "colours": [
+    {
+     "name": "Khaki",
+     "hex": "#A79B78"
+    }
+   ],
+   "sizes": [
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": false,
+   "images": [
+    "/products/catalog/tab-slide-1.jpg"
+   ],
+   "description": "An easy slip-on slide with a soft footbed. Simple, smart and made for every day.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795216740000
+  },
+  {
+   "id": "double-buckle-platform",
+   "name": "Double-Buckle Platform",
+   "slug": "double-buckle-platform",
+   "gender": "men-unisex",
+   "style": "Buckle",
+   "price": 25000,
+   "salePrice": 23000,
+   "colours": [
+    {
+     "name": "Grey",
+     "hex": "#8D8B88"
+    }
+   ],
+   "sizes": [
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": true,
+   "isBestseller": false,
+   "images": [
+    "/products/catalog/double-buckle-platform-1.jpg"
+   ],
+   "description": "A structured strap finished with a polished buckle. Smart, sturdy and comfortable all day.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795216620000
+  },
+  {
+   "id": "suede-tassel-slide",
+   "name": "Suede Tassel Slide",
+   "slug": "suede-tassel-slide",
+   "gender": "women",
+   "style": "Slides",
+   "price": 10000,
+   "salePrice": 9000,
+   "colours": [
+    {
+     "name": "Taupe",
+     "hex": "#9C8B7A"
+    },
+    {
+     "name": "Royal Blue",
+     "hex": "#2A4DA8"
+    },
+    {
+     "name": "Brown",
+     "hex": "#6B4127"
+    },
+    {
+     "name": "Mint",
+     "hex": "#A9D8C0"
+    },
+    {
+     "name": "Sand",
+     "hex": "#D8C29E"
+    },
+    {
+     "name": "Black",
+     "hex": "#1F1B19"
+    },
+    {
+     "name": "Olive",
+     "hex": "#6E6B45"
+    }
+   ],
+   "sizes": [
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": true,
+   "isBestseller": false,
+   "images": [
+    "/products/catalog/suede-tassel-slide-1.jpg"
+   ],
+   "description": "An easy slip-on slide with a soft footbed. Simple, smart and made for every day.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795216560000
+  },
+  {
+   "id": "toe-loop-buckle-slide",
+   "name": "Toe-Loop Buckle Slide",
+   "slug": "toe-loop-buckle-slide",
+   "gender": "men-unisex",
+   "style": "Toe-Ring",
+   "price": 12000,
+   "salePrice": 10500,
+   "colours": [
+    {
+     "name": "Oxblood",
+     "hex": "#5A1A1A"
+    }
+   ],
+   "sizes": [
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": false,
+   "images": [
+    "/products/catalog/toe-loop-buckle-slide-1.jpg"
+   ],
+   "description": "A toe-ring or thong style that keeps your foot secure without straps everywhere. Light, neat and made for long days.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795216440000
+  },
+  {
+   "id": "suede-buckle-slide",
+   "name": "Suede Buckle Slide",
+   "slug": "suede-buckle-slide",
+   "gender": "men-unisex",
+   "style": "Buckle",
+   "price": 12000,
+   "salePrice": 10500,
+   "colours": [
+    {
+     "name": "Tan",
+     "hex": "#B9804F"
+    }
+   ],
+   "sizes": [
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": false,
+   "images": [
+    "/products/catalog/suede-buckle-slide-1.jpg"
+   ],
+   "description": "A structured strap finished with a polished buckle. Smart, sturdy and comfortable all day.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795216380000
+  },
+  {
+   "id": "double-buckle-cork-slide",
+   "name": "Double-Buckle Cork Slide",
+   "slug": "double-buckle-cork-slide",
+   "gender": "men-unisex",
+   "style": "Cork",
+   "price": 25000,
+   "salePrice": 23000,
+   "colours": [
+    {
+     "name": "Tan",
+     "hex": "#B9804F"
+    }
+   ],
+   "sizes": [
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": false,
+   "images": [
+    "/products/catalog/double-buckle-cork-slide-1.jpg"
+   ],
+   "description": "A contoured cork footbed that moulds to your foot, with sturdy straps for everyday wear.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795216320000
+  },
+  {
+   "id": "double-strap-suede-slide",
+   "name": "Double-Strap Suede Slide",
+   "slug": "double-strap-suede-slide",
+   "gender": "men-unisex",
+   "style": "Slides",
+   "price": 18000,
+   "salePrice": 15000,
+   "colours": [
+    {
+     "name": "Tan",
+     "hex": "#B9804F"
+    }
+   ],
+   "sizes": [
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": false,
+   "images": [
+    "/products/catalog/double-strap-suede-slide-1.jpg"
+   ],
+   "description": "An easy slip-on slide with a soft footbed. Simple, smart and made for every day.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795216260000
+  },
+  {
+   "id": "double-buckle-suede-slide",
+   "name": "Double-Buckle Suede Slide",
+   "slug": "double-buckle-suede-slide",
+   "gender": "men-unisex",
+   "style": "Buckle",
+   "price": 17000,
+   "salePrice": 15000,
+   "colours": [
+    {
+     "name": "Tan",
+     "hex": "#B9804F"
+    }
+   ],
+   "sizes": [
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": false,
+   "images": [
+    "/products/catalog/double-buckle-suede-slide-1.jpg"
+   ],
+   "description": "A structured strap finished with a polished buckle. Smart, sturdy and comfortable all day.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795216200000
+  },
+  {
+   "id": "woven-thong",
+   "name": "Woven Thong",
+   "slug": "woven-thong",
+   "gender": "men-unisex",
+   "style": "Toe-Ring",
+   "price": 12000,
+   "salePrice": 10500,
+   "colours": [
+    {
+     "name": "Brown",
+     "hex": "#6B4127"
+    },
+    {
+     "name": "Navy",
+     "hex": "#24304F"
+    },
+    {
+     "name": "Burgundy",
+     "hex": "#6E1F2B"
+    }
+   ],
+   "sizes": [
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": false,
+   "images": [
+    "/products/catalog/woven-thong-1.jpg"
+   ],
+   "description": "A toe-ring or thong style that keeps your foot secure without straps everywhere. Light, neat and made for long days.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795216140000
+  },
+  {
+   "id": "strappy-slingback-thong",
+   "name": "Strappy Slingback Thong",
+   "slug": "strappy-slingback-thong",
+   "gender": "women",
+   "style": "Strappy",
+   "price": 10000,
+   "salePrice": 8500,
+   "colours": [
+    {
+     "name": "Tan",
+     "hex": "#B9804F"
+    }
+   ],
+   "sizes": [
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": false,
+   "images": [
+    "/products/catalog/strappy-slingback-thong-1.jpg"
+   ],
+   "description": "Fine straps that look delicate and hold firm. Pairs beautifully with dresses and wide-leg trousers.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795216080000
+  },
+  {
+   "id": "knot-bow-slide",
+   "name": "Knot Bow Slide",
+   "slug": "knot-bow-slide",
+   "gender": "women",
+   "style": "Bow & Knot",
+   "price": 8000,
+   "salePrice": 6500,
+   "colours": [
+    {
+     "name": "White",
+     "hex": "#F4F1EA"
+    },
+    {
+     "name": "Grey",
+     "hex": "#8D8B88"
+    },
+    {
+     "name": "Tan",
+     "hex": "#B9804F"
+    },
+    {
+     "name": "Black",
+     "hex": "#1F1B19"
+    }
+   ],
+   "sizes": [
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": false,
+   "images": [
+    "/products/catalog/knot-bow-slide-1.jpg"
+   ],
+   "description": "A soft bow or knot on a comfortable flat sole. Dressy enough for owambe, easy enough for a market run.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795215960000
+  },
+  {
+   "id": "wrap-toe-loop-slide",
+   "name": "Wrap Toe-Loop Slide",
+   "slug": "wrap-toe-loop-slide",
+   "gender": "women",
+   "style": "Toe-Ring",
+   "price": 8000,
+   "salePrice": 6500,
+   "colours": [
+    {
+     "name": "Blue",
+     "hex": "#7FA7CF"
+    },
+    {
+     "name": "White",
+     "hex": "#F4F1EA"
+    },
+    {
+     "name": "Black",
+     "hex": "#1F1B19"
+    }
+   ],
+   "sizes": [
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": false,
+   "images": [
+    "/products/catalog/wrap-toe-loop-slide-1.jpg"
+   ],
+   "description": "A toe-ring or thong style that keeps your foot secure without straps everywhere. Light, neat and made for long days.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795215780000
+  },
+  {
+   "id": "toe-loop-slide",
+   "name": "Toe-Loop Slide",
+   "slug": "toe-loop-slide",
+   "gender": "women",
+   "style": "Toe-Ring",
+   "price": 8000,
+   "salePrice": 6500,
+   "colours": [
+    {
+     "name": "Black/White",
+     "hex": "#1F1B19"
+    }
+   ],
+   "sizes": [
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": false,
+   "images": [
+    "/products/catalog/toe-loop-slide-1.jpg"
+   ],
+   "description": "A toe-ring or thong style that keeps your foot secure without straps everywhere. Light, neat and made for long days.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795215720000
+  },
+  {
+   "id": "ring-thong-slingback",
+   "name": "Ring Thong Slingback",
+   "slug": "ring-thong-slingback",
+   "gender": "women",
+   "style": "Toe-Ring",
+   "price": 10000,
+   "salePrice": 8500,
+   "colours": [
+    {
+     "name": "Brown",
+     "hex": "#6B4127"
+    }
+   ],
+   "sizes": [
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": false,
+   "images": [
+    "/products/catalog/ring-thong-slingback-1.jpg"
+   ],
+   "description": "A toe-ring or thong style that keeps your foot secure without straps everywhere. Light, neat and made for long days.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795215600000
+  },
+  {
+   "id": "croc-cross-slide",
+   "name": "Croc Cross Slide",
+   "slug": "croc-cross-slide",
+   "gender": "men-unisex",
+   "style": "Cross-Strap",
+   "price": 15000,
+   "salePrice": 13500,
+   "colours": [
+    {
+     "name": "Black",
+     "hex": "#1F1B19"
+    }
+   ],
+   "sizes": [
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46
+   ],
+   "soldOutSizes": [],
+   "inStock": true,
+   "isNew": false,
+   "isBestseller": false,
+   "images": [
+    "/products/catalog/croc-cross-slide-1.jpg"
+   ],
+   "description": "Crossed straps for a secure fit and a clean look, on a cushioned sole.",
+   "focus": "50% 50%",
+   "orderType": "made-to-order",
+   "createdAt": 1795215540000
+  }
+ ]
+}
